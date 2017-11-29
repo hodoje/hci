@@ -32,17 +32,17 @@ namespace PZ2
     {
         public static List<int> fontSizes = new List<int>() { 8, 9, 10, 11, 12, 14, 16, 18 , 20, 22, 24, 26, 28, 36, 48, 72 };
 
-        public static List<RichTextBox> rtbList = new List<RichTextBox>();
-        public static List<string> activeRtbFilePath = new List<string>();
-        public static List<string> activeRtbFormatAsString = new List<string>();
+        public static List<RichTextBox> rtbList = new List<RichTextBox>();                     // List of RTBs
+        public static List<string> activeRtbFilePath = new List<string>();                     // File path of active RTB (for Save, SaveAs)
+        public static List<string> activeRtbFormatAsString = new List<string>();               // Format of active RTB
 
-        public static int index;                                                               // Staticki indeks za pracenje trenutnog RTB-a
-        public static bool changed;
+        public static int index;                                                               // Static indeces for tracking current RTB
+        public static bool changed;                                                            // Track every change
 
         public MainWindow()
         {
             InitializeComponent();
-            CmbFontFamily.ItemsSource = Fonts.SystemFontFamilies.OrderBy(f => f.Source);        // Inicijalizacija liste fontova
+            CmbFontFamily.ItemsSource = Fonts.SystemFontFamilies.OrderBy(f => f.Source);        // Initialization of font list
             CmbFontSize.ItemsSource = fontSizes;
             DataContext = this;
 
@@ -55,24 +55,16 @@ namespace PZ2
             tabChild.Margin = new Thickness(0, 0, 0, 0);
             tabChild.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             tabChild.AcceptsTab = true;
-            tabChild.Loaded += (senderr, ee) => tabChild.Focus();                               // Postavlja fokus na element kad se ucita
+            tabChild.Loaded += (senderr, ee) => tabChild.Focus();                               // Sets focus on loaded RTB
             tabChild.KeyUp += (senderr, ee) =>
             {
                 if (ee.Key == Key.F5)
                 {
                     var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
-                    var selekcija = rtbList[index].Selection.Text;
+                    var selekcija = rtbList[index].Selection;
+                    var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
+                    var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
 
-                    if (selekcija != "")
-                    {
-                        if (selekcija[selekcija.Length - 2] == '\r' && selekcija[selekcija.Length - 1] == '\n')
-                        {
-                            rtbList[index].Document.Blocks.Clear();
-                            rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-                        }
-                    }
-
-                    txtRange.Text = DateTime.Now.ToString();
                     txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
                     txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
                     txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
@@ -80,13 +72,36 @@ namespace PZ2
                     txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
                     txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
 
-                    rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
+                    if (selekcija.Text == ceoTekst)
+                    {
+                        rtbList[index].Document.Blocks.Clear();
+                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                        txtRange.Text = DateTime.Now.ToString();
+                    }
+                    else if (selekcija.Text == ceoTekstBezNevKar)
+                    {
+                        rtbList[index].Document.Blocks.Clear();
+                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                        txtRange.Text = DateTime.Now.ToString();
+                    }
+                    else if (selekcija.Text != ceoTekst)
+                    {
+                        selekcija.Text = "";
+                        selekcija.Text = DateTime.Now.ToString();
+                    }
+
+                    if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
+                    {
+                        rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
+                    }
                     changed = true;
+                    rtbList[index].Focus();
                 }
             };
             tabChild.TextChanged += (senderr, ee) => changed = true;
 
-            //////////////////////////
             StackPanel sp = new StackPanel() { Orientation = Orientation.Horizontal };
 
             TextBlock tb = new TextBlock();
@@ -104,15 +119,14 @@ namespace PZ2
             sp.Children.Add(b);
 
             tab.Header = sp;
-            /////////////////////////
 
             tab.Content = tabChild;
 
             rtbList.Add(tabChild);
 
-            activeRtbFilePath.Add("");                              // First open tab doesn't have a path yet
+            activeRtbFilePath.Add("");                                                          // First open tab doesn't have a path yet
 
-            activeRtbFormatAsString.Add("");                        // First open tab doesn't have a DataFormat yet
+            activeRtbFormatAsString.Add("");                                                    // First open tab doesn't have a DataFormat yet
 
             TabCntrl.Items.Add(tab);
 
@@ -128,30 +142,32 @@ namespace PZ2
         private void RtbEditor_SelectionChanged(object sender, RoutedEventArgs e)
         {
 
-            foreach (var el in rtbList)                                 // Sender ce biti neki RTB, a posto ih imamo vise, moramo naci koji je taj,
-            {                                                           // Tako da pronalazimo njegov indeks i onda posle koristimo
+            foreach (var el in rtbList)                                                         // Sender will be some RTB, and because we have many of them, we need to find the right one
+            {                                                                                   // So we find his index and use it later
                 if (el.Equals(sender as RichTextBox))
                 {
                     index = rtbList.IndexOf(el);
                 }
             }
 
-            object temp = rtbList[index].Selection.GetPropertyValue(Inline.FontWeightProperty);                  // Vraca da li je bold ili normalan
-            BtnBold.IsChecked = (temp != DependencyProperty.UnsetValue) && (temp.Equals(FontWeights.Bold));      // Proverava da li je dugme pritisnuto
-            // CLR properti su svi oni propertiji koje smo koristili do sada, mana kod njih je sto se oni skladiste u memoriji aplikacije, bilo da im se menja njihova podrazumevana vrednost ili ne
-            // Oni samo predstavljaju omotace (wrapper-e) oko "private" promenljivih. Koriste Get/Set kako bi preuzimali ili smestali vrednosti privatnih promenljivih.
-            // Vrednost CLR propertija direktno zavisi samo od "private" promenljive za koju je namenjen.
-            // DependencyProperty su propertiji su propertiji koji se kreiraju samo kada se koriste. Dakle, ako imamo dugme sa 50 propertija, samo oni propertiji kojima ce se promeniti
-            // podrazumevana vrednost definisana u "metadata" ce biti smesteni u memoriju
-            // Vrednost DependencyPropertija zavisi od eksternih izvora (animacija, data binding, stilovi...)
-            // Ovi propertiji se cuvaju u recniku (dictionary-u) kljuceva i vrednosti unutar bazne klase DependencyObject. Kljuc je ime propertija, a vrednost je vrednost propertija
-            // Ovaj properti ima dve metode: "GetValue" i "SetValue". Umesto preuzimanja i cuvanja vrednosti iz nekog polja, kao kod (CLR-a), oni preuzimaju i cuvaju vrednosti u taj recnik.
-            // Ono sto je zanimljivo kod ovih metoda jeste da kad se pozove "GetValue" on trazi vrednost unutar recnika vrednosti tog objekta gde se poziva (npr. neki TextBox), ukoliko ne moze
-            // da nadje vrednost, ona poziva "GetValue" metodu roditeljskog elementa da vidi da li tu ima vrednost za taj neki properti, ako nema, nastavlja se dalje dok se ne nadje (ili ne ne nadje).
-            // Sto se tice "SetValue" metode, ukoliko recimo podesimo vrednost za neki properti na nivou Window objekta, nece se samo azurirati vrednost propertija u recniku Window-a, vec ce se opaliti 
-            // "property-change" dogadjaj gde sve sto zavisi od toga propertija ce znati za taj dogadjaj. 
-            // Ako je to sto je culo taj dogadjaj, takodje neki DependencyProperty, on ce takodje opaliti takav dogadjaj.
-            // Tako da, ako npr. promenimo vrednost FontFamily propertija na Window-u, promenice se font u svim ostalim kontrolama.
+            object temp = rtbList[index].Selection.GetPropertyValue(Inline.FontWeightProperty);      
+            BtnBold.IsChecked = (temp != DependencyProperty.UnsetValue) && (temp.Equals(FontWeights.Bold));
+            // Explanation of CLR and Dependency properties
+            // CLR properties are all those properties that we have used until now (defined in classes), their downside is that they are stored in memory, whether their default value is changed or not
+            // They just represent wrappers around a private variable. They use Get/Set to get or store values of those private variables.
+            // Value of a CLR property depends only on the private property for which it was defined.
+            // DependencyProperties are properties that are created only when they are used. For example, if a button has 50 properties, only those properties whose default value,
+            // defined in metadata, was changed will be loaded into memory
+            // Value of DependencyProperties depends on external sources (animations, data binding, styles...)
+            // These properties are stored in a Dictionary of keys and values inside the base class called DependencyObject. The key is the name of the property, and the value is the value of the property
+            // These properties have 2 methods: "GetValue" and "SetValue". Instead of getting and storing values from some field (like a CLR), they get and store values in that Dictionary.
+            // What is interesting with these methods is that when, for example, "GetValue" is called, it looks for the values inside the Dictionary of the object from which is called (for example, some TextBox),
+            // if it can't find the value, it calls the "GetValue" of the parent element to see if there might be a value in parents Dictionary, if it can't find the value, it continues along the tree (parent to parent)
+            // until it finds the value (or not).
+            // When it comes to "SetValue" method, if we, for example, set a value for some property on the level of a Window object, it won't update the values only in the Dictionary of the Window, instead, it will fire
+            // "property-change" event where everything that depends on that event will know about it.
+            // If something that heard that event, is also a DependencyProperty, it will also fire the same event.
+            // So, if we for example, change the FontFamily property of the Window, it will change the font in all other controls.
 
             temp = rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty);
             BtnItalic.IsChecked = (temp != DependencyProperty.UnsetValue) && (temp.Equals(FontStyles.Italic));
@@ -159,10 +175,10 @@ namespace PZ2
             temp = rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty);
             BtnUnderline.IsChecked = (temp != DependencyProperty.UnsetValue) && (temp.Equals(TextDecorations.Underline));
 
-            temp = rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty);            // U temp nam se vraca font
-            CmbFontFamily.SelectedItem = temp;                                                      // Prikazemo u Comboboxu
+            temp = rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty);
+            CmbFontFamily.SelectedItem = temp;
 
-            if (temp.ToString() == "{DependencyProperty.UnsetValue}")
+            if (temp.ToString() == "{DependencyProperty.UnsetValue}")                                   // If the value is "{DependencyProperty.UnsetValue}" that means selected text has more FontFamily properties set
             {
                 CmbFontFamily.Text = "";
                 CmbFontFamily.SelectedItem = null;
@@ -190,10 +206,10 @@ namespace PZ2
                 CmbFontFamily.Text = txtRange.GetPropertyValue(Inline.FontFamilyProperty).ToString();
             }
 
-            temp = rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty);              // U temp nam se vraca font size
-            if (temp.ToString() == "{DependencyProperty.UnsetValue}")                               // Prilikom selektovanja teksta gde su razlicite velicine, vratice se "{DependencyProperty.UnsetValue}" string
+            temp = rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty);              
+            if (temp.ToString() == "{DependencyProperty.UnsetValue}")                                   // If the value is "{DependencyProperty.UnsetValue}" that means selected text has more FontSize properties set
             {
-                CmbFontSize.Text = "";                                                              // Ukoliko se to desilo, zelimo da preimenujemo Text properti da bude ""
+                CmbFontSize.Text = "";                                                                  
                 CmbFontSize.SelectedItem = null;
             }
             else if (!rtbList[index].Selection.IsEmpty)
@@ -201,7 +217,7 @@ namespace PZ2
                 CmbFontSize.SelectedItem = CmbFontSize.SelectedItem;
                 CmbFontSize.Text = temp.ToString();
             }
-            else if (rtbList[index].Selection.IsEmpty || CmbFontSize.SelectedItem == null)                          // NIJE SAVRSENO
+            else if (rtbList[index].Selection.IsEmpty || CmbFontSize.SelectedItem == null)
             {
                 if (rtbList[index].CaretPosition.GetPositionAtOffset(1, LogicalDirection.Forward) != null)
                 {
@@ -219,12 +235,12 @@ namespace PZ2
                 CmbFontSize.Text = txtRange.GetPropertyValue(Inline.FontSizeProperty).ToString();
             }
 
-            Number_Of_Words_In_Rtb();                                                               // Prikazati broj reci u tekstu
+            Number_Of_Words_In_Rtb();                                                                   // Show number of words in a text
 
-            temp = rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty);            // Preuzmemo trenutnu boju teksta
+            temp = rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty);            
             if (temp != null && temp.ToString() != "{DependencyProperty.UnsetValue}")
             {
-                ClrPcker.SelectedColor = (Color?)ColorConverter.ConvertFromString(temp.ToString());  // Podesimo trenutnu izabranu boju da bude prikazana u listi
+                ClrPcker.SelectedColor = (Color?)ColorConverter.ConvertFromString(temp.ToString());     
             }
             else
             {
@@ -295,9 +311,9 @@ namespace PZ2
                             else
                                 range.Save(fileStream, DataFormats.Rtf);
 
-                            string absoluteFileName = dialog.FileName; // Ovde izvlacimo ime fajla
-                            int slashLastIndex = absoluteFileName.LastIndexOf('\\'); //
-                            string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1); //
+                            string absoluteFileName = dialog.FileName; 
+                            int slashLastIndex = absoluteFileName.LastIndexOf('\\');
+                            string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1); 
 
                             e.Cancel = false;
                         }
@@ -427,18 +443,10 @@ namespace PZ2
         private void DateTimeButton_OnClick(object sender, RoutedEventArgs e)
         {
             var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
-            var selekcija = rtbList[index].Selection.Text;
+            var selekcija = rtbList[index].Selection;
+            var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
+            var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
 
-            if (selekcija != "")
-            {
-                if (selekcija[selekcija.Length - 2] == '\r' && selekcija[selekcija.Length - 1] == '\n')
-                {
-                    rtbList[index].Document.Blocks.Clear();
-                    rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-                }
-            }
-
-            txtRange.Text = DateTime.Now.ToString();
             txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
             txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
             txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
@@ -446,13 +454,37 @@ namespace PZ2
             txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
             txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
 
-            rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
+            if (selekcija.Text == ceoTekst)
+            {
+                rtbList[index].Document.Blocks.Clear();
+                rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                txtRange.Text = DateTime.Now.ToString();
+            }
+            else if (selekcija.Text == ceoTekstBezNevKar)
+            {
+                rtbList[index].Document.Blocks.Clear();
+                rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                txtRange.Text = DateTime.Now.ToString();
+            }
+            else if (selekcija.Text != ceoTekst)
+            {
+                selekcija.Text = "";
+                selekcija.Text = DateTime.Now.ToString();
+            }
+
+            if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
+            {
+                rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
+            }
             changed = true;
+            rtbList[index].Focus();
         }
 
         private bool HasPunctuations(string input)
         {
-            bool result = input.IndexOfAny("[](){}*,:=;...#".ToCharArray()) != -1;  //returns false if there is a punctuation in an array
+            bool result = input.IndexOfAny("[](){}*,:=;...#".ToCharArray()) != -1;          // Returns true if there is a punctuation in an array
 
             return result;
         }
@@ -487,18 +519,10 @@ namespace PZ2
                 if (ee.Key == Key.F5)
                 {
                     var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
-                    var selekcija = rtbList[index].Selection.Text;
+                    var selekcija = rtbList[index].Selection;
+                    var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
+                    var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
 
-                    if (selekcija != "")
-                    {
-                        if (selekcija[selekcija.Length - 2] == '\r' && selekcija[selekcija.Length - 1] == '\n')
-                        {
-                            rtbList[index].Document.Blocks.Clear();
-                            rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-                        }
-                    }
-
-                    txtRange.Text = DateTime.Now.ToString();
                     txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
                     txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
                     txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
@@ -506,8 +530,32 @@ namespace PZ2
                     txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
                     txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
 
-                    rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
+                    if (selekcija.Text == ceoTekst)
+                    {
+                        rtbList[index].Document.Blocks.Clear();
+                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                        txtRange.Text = DateTime.Now.ToString();
+                    }
+                    else if (selekcija.Text == ceoTekstBezNevKar)
+                    {
+                        rtbList[index].Document.Blocks.Clear();
+                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                        txtRange.Text = DateTime.Now.ToString();
+                    }
+                    else if (selekcija.Text != ceoTekst)
+                    {
+                        selekcija.Text = "";
+                        selekcija.Text = DateTime.Now.ToString();
+                    }
+
+                    if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
+                    {
+                        rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
+                    }
                     changed = true;
+                    rtbList[index].Focus();
                 }
             };
             tabChild.TextChanged += (senderr, ee) => changed = true;
@@ -551,43 +599,35 @@ namespace PZ2
 
         private void Open_File_Command_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            OpenFileDialog dialog = new OpenFileDialog();                                                            // Pravimo novi dijalog           
-            dialog.Filter = "All files (*.*)|*.*| Rich Text Format (*.rtf)|*.rtf| Txt (*.txt)|*.txt";                // Podesavamo filter
-            if (dialog.ShowDialog() == true)                                                                         // Kad se dijalog otvori
+            OpenFileDialog dialog = new OpenFileDialog();                                                            
+            dialog.Filter = "All files (*.*)|*.*| Rich Text Format (*.rtf)|*.rtf| Txt (*.txt)|*.txt";                
+            if (dialog.ShowDialog() == true)                                                                         
             {
-                string absoluteFileName = dialog.FileName;                                                           // Ovde izvlacimo ime fajla
-                int slashLastIndex = absoluteFileName.LastIndexOf('\\');                                             //
-                string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1);                            //
+                string absoluteFileName = dialog.FileName;                                                           
+                int slashLastIndex = absoluteFileName.LastIndexOf('\\');                                             
+                string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1);                            
                 int dotLastIndex = absoluteFileName.LastIndexOf('.');
                 string fileExtension = absoluteFileName.Substring(dotLastIndex);
 
-                TabItem tab = new TabItem();                                                                         // Pravimo novi TabItem koji ce sadrzati RTB
+                TabItem tab = new TabItem();                                                                         
 
-                RichTextBox tabChild = new RichTextBox();                                                            // Pravimo novi RTB
+                RichTextBox tabChild = new RichTextBox();                                                            
 
-                tabChild.SelectionChanged += RtbEditor_SelectionChanged;                                             // Ovde podesavamo neke opcije
-                tabChild.BorderThickness = new Thickness(1, 1, 1, 1);                                                //
-                tabChild.Margin = new Thickness(0, 0, 0, 0);                                                         //
-                tabChild.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;                                     //
-                tabChild.AcceptsTab = true;                                                                          //
-                tabChild.Loaded += (senderr, ee) => tabChild.Focus();                                                //
-                tabChild.KeyUp += (senderr, ee) =>                                                                   //
+                tabChild.SelectionChanged += RtbEditor_SelectionChanged;                                             
+                tabChild.BorderThickness = new Thickness(1, 1, 1, 1);                                                
+                tabChild.Margin = new Thickness(0, 0, 0, 0);                                                         
+                tabChild.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;                                     
+                tabChild.AcceptsTab = true;                                                                          
+                tabChild.Loaded += (senderr, ee) => tabChild.Focus();                                                
+                tabChild.KeyUp += (senderr, ee) =>                                                                   
                 {
                     if (ee.Key == Key.F5)
                     {
                         var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
-                        var selekcija = rtbList[index].Selection.Text;
+                        var selekcija = rtbList[index].Selection;
+                        var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
+                        var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
 
-                        if (selekcija != "")
-                        {
-                            if (selekcija[selekcija.Length - 2] == '\r' && selekcija[selekcija.Length - 1] == '\n')
-                            {
-                                rtbList[index].Document.Blocks.Clear();
-                                rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-                            }
-                        }
-
-                        txtRange.Text = DateTime.Now.ToString();
                         txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
                         txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
                         txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
@@ -595,30 +635,53 @@ namespace PZ2
                         txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
                         txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
 
-                        rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
+                        if (selekcija.Text == ceoTekst)
+                        {
+                            rtbList[index].Document.Blocks.Clear();
+                            rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                            txtRange.Text = DateTime.Now.ToString();
+                        }
+                        else if (selekcija.Text == ceoTekstBezNevKar)
+                        {
+                            rtbList[index].Document.Blocks.Clear();
+                            rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                            txtRange.Text = DateTime.Now.ToString();
+                        }
+                        else if (selekcija.Text != ceoTekst)
+                        {
+                            selekcija.Text = "";
+                            selekcija.Text = DateTime.Now.ToString();
+                        }
+
+                        if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
+                        {
+                            rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
+                        }
                         changed = true;
+                        rtbList[index].Focus();
                     }
                 };
                 tabChild.TextChanged += (senderr, ee) => changed = true;
 
-                FileStream fileStream = new FileStream(dialog.FileName, FileMode.Open);                              // Otvaramo novi tok podataka
-                TextRange range = new TextRange(tabChild.Document.ContentStart, tabChild.Document.ContentEnd);       // Odredjujemo pokazivace na pocetak i kraj podataka
-                if (fileExtension == ".rtf")                                                                         // Ucitavamo podatke iz toka podataka, format zavisi od izabranog filtera
+                FileStream fileStream = new FileStream(dialog.FileName, FileMode.Open);                              
+                TextRange range = new TextRange(tabChild.Document.ContentStart, tabChild.Document.ContentEnd);       
+                if (fileExtension == ".rtf")                                                                         
                 {
                     range.Load(fileStream, DataFormats.Rtf);
-                    activeRtbFormatAsString.Add(DataFormats.Rtf.ToString());                                         // Cuvamo DataFormat ucitanog fajla
+                    activeRtbFormatAsString.Add(DataFormats.Rtf.ToString());                                         
                 }
                 else
                 {
-                    range.Load(fileStream, DataFormats.Text);                                                        // do not load docx files
-                    activeRtbFormatAsString.Add(DataFormats.Text.ToString());                                        // Cuvamo DataFormat ucitanog fajla
+                    range.Load(fileStream, DataFormats.Text);                                                        // Does not support docx files
+                    activeRtbFormatAsString.Add(DataFormats.Text.ToString());                                        // Save DataFormat of loaded file
                 }                                                                                                 
 
                 fileStream.Close();
 
                 activeRtbFilePath.Add(absoluteFileName);
 
-                ////////////////
                 StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal};
 
                 TextBlock tb = new TextBlock();
@@ -635,22 +698,21 @@ namespace PZ2
                 b.Click += CloseTab;
                 sp.Children.Add(b);
 
-                tab.Header = sp;                                                                                     // Ovde to ime dodeljujemo u header tab-a
-                ///////////////
+                tab.Header = sp;                                                                                     
 
-                tab.Content = tabChild;                                                                              // Sadrzaj tab-a bice nas RTB
+                tab.Content = tabChild;                                                                              // Content of our Tab will be a RTB
 
-                tabChild.CaretPosition = tabChild.CaretPosition.DocumentEnd;                                         // Nakon ucitavanja fajla prebacujemo caret na kraj
+                tabChild.CaretPosition = tabChild.CaretPosition.DocumentEnd;                                        
 
-                rtbList.Add(tabChild);                                                                               // Nas RTB dodajemo u listu RTB-ova
+                rtbList.Add(tabChild);                                                                               // Add RTB to list of RTBs
 
-                TabCntrl.Items.Add(tab);                                                                             // U tab control element dodajemo nas tab
+                TabCntrl.Items.Add(tab);                                                                             // Add newly created Tab to TabControl
 
-                foreach (TabItem el in TabCntrl.Items)                                                               // Prolazimo kroz sve tab-ove iz tab control elementa i
+                foreach (TabItem el in TabCntrl.Items)                                                               // Iterate through all the Tabs in TabControl
                 {
-                    if (el.Equals(tab))                                                                              // ako se podudara sa onim upravo dodatim
+                    if (el.Equals(tab))                                                                              // if it matches the newly created
                     {
-                        el.Focus();                                                                                  // Prebacuje se fokus na njega
+                        el.Focus();                                                                                  // Set focus on it
                     }
                 }
                 changed = false;
@@ -662,7 +724,7 @@ namespace PZ2
             if (changed)
             {
                 TabItem tab = (TabItem)rtbList[index].Parent;
-                if (((TextBlock)((StackPanel)tab.Header).Children[0]).Text == "New")            // Pristupamo TextBlock-u koji se nalazi unutar StackPanel-a koji je sadrzan u header-u tab-a
+                if (((TextBlock)((StackPanel)tab.Header).Children[0]).Text == "New")            // Access the TextBlock that is inside the StackPanel which is stored in the header of a Tab
                 {
                     SaveFileDialog dialog = new SaveFileDialog();
                     dialog.Filter = "All files (*.*)|*.*| Rich Text Format (*.rtf)|*.rtf| Txt (*.txt)|*.txt";
@@ -683,9 +745,9 @@ namespace PZ2
                         }
                         fileStream.Close();
 
-                        string absoluteFileName = dialog.FileName;                                // Ovde izvlacimo ime fajla
-                        int slashLastIndex = absoluteFileName.LastIndexOf('\\');                  //
-                        string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1); //
+                        string absoluteFileName = dialog.FileName;                                
+                        int slashLastIndex = absoluteFileName.LastIndexOf('\\');                  
+                        string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1); 
                         int dotLastIndex = absoluteFileName.LastIndexOf('.');
                         string fileExtension = absoluteFileName.Substring(dotLastIndex);
 
@@ -759,9 +821,9 @@ namespace PZ2
                 }
                 fileStream.Close();
 
-                string absoluteFileName = dialog.FileName;                                                           // Ovde izvlacimo ime fajla
-                int slashLastIndex = absoluteFileName.LastIndexOf('\\');                                             //
-                string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1);                            //
+                string absoluteFileName = dialog.FileName;                                                           
+                int slashLastIndex = absoluteFileName.LastIndexOf('\\');                                             
+                string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1);                            
 
                 TabItem tab = (TabItem)rtbList[index].Parent;
 
@@ -812,7 +874,7 @@ namespace PZ2
             StatusBarTextBlock.Text = "Words: " + counter;
         }
 
-        private void TabPanel_OnSizeChanged(object sender, SizeChangedEventArgs e)              // NE ZNAM ZASTO, ALI RADI! DO NOT TOUCH!
+        private void TabPanel_OnSizeChanged(object sender, SizeChangedEventArgs e)              // I DON NOT KNOW WHY IT WORKS THIS WAY! DO NOT TOUCH!
         {
             TabPanel tp = e.Source as TabPanel;
             TabCntrl.Height = e.NewSize.Height;
