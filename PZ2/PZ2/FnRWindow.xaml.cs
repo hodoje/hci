@@ -29,7 +29,6 @@ namespace PZ2
         private static List<string> activeRtbFormatAsString = MainWindow.activeRtbFormatAsString;
 
         private static int index = MainWindow.index;
-        private static bool changed = MainWindow.changed;
 
         public FnRWindow()
         {

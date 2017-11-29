@@ -30,14 +30,14 @@ namespace PZ2
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static List<int> fontSizes = new List<int>() { 8, 9, 10, 11, 12, 14, 16, 18 , 20, 22, 24, 26, 28, 36, 48, 72 };
+        public static List<int> fontSizes = new List<int>() { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 };
 
         public static List<RichTextBox> rtbList = new List<RichTextBox>();                     // List of RTBs
         public static List<string> activeRtbFilePath = new List<string>();                     // File path of active RTB (for Save, SaveAs)
         public static List<string> activeRtbFormatAsString = new List<string>();               // Format of active RTB
+        public static List<bool> activeRtbChanged = new List<bool>();                          // Track active RTB changes
 
         public static int index;                                                               // Static indeces for tracking current RTB
-        public static bool changed;                                                            // Track every change
 
         public MainWindow()
         {
@@ -96,11 +96,11 @@ namespace PZ2
                     {
                         rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
                     }
-                    changed = true;
+                    activeRtbChanged[index] = true;
                     rtbList[index].Focus();
                 }
             };
-            tabChild.TextChanged += (senderr, ee) => changed = true;
+            tabChild.TextChanged += (senderr, ee) => activeRtbChanged[index] = true;
 
             StackPanel sp = new StackPanel() { Orientation = Orientation.Horizontal };
 
@@ -124,9 +124,11 @@ namespace PZ2
 
             rtbList.Add(tabChild);
 
-            activeRtbFilePath.Add("");                                                          // First open tab doesn't have a path yet
+            activeRtbFilePath.Add("");                                                          // Initially open tab doesn't have a path yet
 
-            activeRtbFormatAsString.Add("");                                                    // First open tab doesn't have a DataFormat yet
+            activeRtbFormatAsString.Add("");                                                    // Initially open tab doesn't have a DataFormat yet
+
+            activeRtbChanged.Add(false);                                                        // Initially open tab doesn't have any changes
 
             TabCntrl.Items.Add(tab);
 
@@ -264,11 +266,7 @@ namespace PZ2
                     rtbList[selRtbIndex].Focus();
                 }
             }
-            if (selRtbIndex == 0)
-            {
-
-            }
-            else
+            if(TabCntrl.Items.Count > 1)
             {
                 TabItem delT = (TabItem)rtbList[selRtbIndex].Parent;
                 TabCntrl.Items.Remove(delT);
@@ -282,9 +280,29 @@ namespace PZ2
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
-            if(changed == true)
+            bool atLeastOnechanged = false;
+
+            foreach (RichTextBox rtb in rtbList)
             {
-                MessageBoxResult result = MessageBox.Show("You are about to exit the program, do you want to save your progress before closing?", "Exit", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                if (activeRtbChanged[rtbList.IndexOf(rtb)])
+                {
+                    atLeastOnechanged = true;
+                }
+            }
+
+            if (atLeastOnechanged)
+            {
+                int numberOfNotSavedTabs = 0;
+                foreach (bool change in activeRtbChanged)
+                {
+                    if (change)
+                    {
+                        numberOfNotSavedTabs++;
+                    }
+                }
+                MessageBoxResult result =
+                    MessageBox.Show($"You have {numberOfNotSavedTabs} unsaved tabs, do you want to save your recent changes?",
+                        "Exit", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Cancel)
                 {
                     e.Cancel = true;
@@ -296,53 +314,58 @@ namespace PZ2
                 }
                 else if (result == MessageBoxResult.Yes)
                 {
-                    TabItem tab = (TabItem) rtbList[index].Parent;
-                    if (((TextBlock) ((StackPanel) tab.Header).Children[0]).Text == "New")
+                    foreach (TabItem tab in TabCntrl.Items)
                     {
-                        SaveFileDialog dialog = new SaveFileDialog();
-                        dialog.Filter = "All files (*.*)|*.*| Rich Text Format (*.rtf)|*.rtf| Txt (*.txt)|*.txt";
-                        if (dialog.ShowDialog() == true)
+                        tab.Focus();
+                        if (((TextBlock) ((StackPanel) tab.Header).Children[0]).Text == "New")
                         {
-                            FileStream fileStream = new FileStream(dialog.FileName, FileMode.Create);
-                            TextRange range = new TextRange(rtbList[index].Document.ContentStart,
-                                rtbList[index].Document.ContentEnd);
-                            if (dialog.FilterIndex == 1 || dialog.FilterIndex == 3)
-                                range.Save(fileStream, DataFormats.Text);
-                            else
-                                range.Save(fileStream, DataFormats.Rtf);
-
-                            string absoluteFileName = dialog.FileName; 
-                            int slashLastIndex = absoluteFileName.LastIndexOf('\\');
-                            string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1); 
-
-                            e.Cancel = false;
-                        }
-                    }
-                    else
-                    {
-                        TabItem activeTab = (TabItem)TabCntrl.SelectedItem;
-                        RichTextBox activeRtb = (RichTextBox)activeTab.Content;
-                        int activeRtbIndex = 0;
-
-                        foreach (var rtb in rtbList)
-                        {
-                            if (rtb.Equals(activeRtb))
+                            SaveFileDialog dialog = new SaveFileDialog();
+                            dialog.Filter = "All files (*.*)|*.*| Rich Text Format (*.rtf)|*.rtf| Txt (*.txt)|*.txt";
+                            if (dialog.ShowDialog() == true)
                             {
-                                activeRtbIndex = rtbList.IndexOf(rtb);
+                                FileStream fileStream = new FileStream(dialog.FileName, FileMode.Create);
+                                TextRange range = new TextRange(rtbList[index].Document.ContentStart,
+                                    rtbList[index].Document.ContentEnd);
+                                if (dialog.FilterIndex == 1 || dialog.FilterIndex == 3)
+                                    range.Save(fileStream, DataFormats.Text);
+                                else
+                                    range.Save(fileStream, DataFormats.Rtf);
+
+                                string absoluteFileName = dialog.FileName;
+                                int slashLastIndex = absoluteFileName.LastIndexOf('\\');
+                                string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1);
+
+                                e.Cancel = false;
                             }
                         }
-
-                        if (activeRtbFormatAsString[activeRtbIndex] != "")
+                        else
                         {
-                            DataFormat df = DataFormats.GetDataFormat(activeRtbFormatAsString[activeRtbIndex]);
-                            FileStream fileStream = new FileStream(activeRtbFilePath[activeRtbIndex], FileMode.Create, FileAccess.Write);
-                            TextRange range = new TextRange(rtbList[activeRtbIndex].Document.ContentStart, rtbList[activeRtbIndex].Document.ContentEnd);
-                            range.Save(fileStream, df.Name);
-                            fileStream.Close();
-                            changed = false;
+                            TabItem activeTab = (TabItem) TabCntrl.SelectedItem;
+                            RichTextBox activeRtb = (RichTextBox) activeTab.Content;
+                            int activeRtbIndex = 0;
+
+                            foreach (var rtb in rtbList)
+                            {
+                                if (rtb.Equals(activeRtb))
+                                {
+                                    activeRtbIndex = rtbList.IndexOf(rtb);
+                                }
+                            }
+
+                            if (activeRtbFormatAsString[activeRtbIndex] != "")
+                            {
+                                DataFormat df = DataFormats.GetDataFormat(activeRtbFormatAsString[activeRtbIndex]);
+                                FileStream fileStream = new FileStream(activeRtbFilePath[activeRtbIndex],
+                                    FileMode.Create, FileAccess.Write);
+                                TextRange range = new TextRange(rtbList[activeRtbIndex].Document.ContentStart,
+                                    rtbList[activeRtbIndex].Document.ContentEnd);
+                                range.Save(fileStream, df.Name);
+                                fileStream.Close();
+                                activeRtbChanged[activeRtbIndex] = false;
+                                e.Cancel = false;
+                            }
                         }
                     }
-                    
                 }
             }
         }
@@ -358,7 +381,7 @@ namespace PZ2
                 else if (!rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty).Equals(CmbFontFamily.SelectedItem))
                 {
                     rtbList[index].Selection.ApplyPropertyValue(Inline.FontFamilyProperty, CmbFontFamily.SelectedItem);
-                    changed = true;
+                    activeRtbChanged[index] = true;
                     rtbList[index].Focus();
                 }
             }
@@ -373,7 +396,7 @@ namespace PZ2
                 if (rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty).ToString() != boja.ToString())
                 {
                     rtbList[index].Selection.ApplyPropertyValue(Inline.ForegroundProperty, boja);
-                    changed = true;
+                    activeRtbChanged[index] = true;
                 }             
                 ClrPcker.Focusable = false;
             }
@@ -393,7 +416,7 @@ namespace PZ2
                             CmbFontSize.Text)
                         {
                             rtbList[index].Selection.ApplyPropertyValue(Inline.FontSizeProperty, CmbFontSize.Text);
-                            changed = true;
+                            activeRtbChanged[index] = true;
                         }
                     }
                     else
@@ -433,7 +456,7 @@ namespace PZ2
                     CmbFontSize.Text = txtRange.GetPropertyValue(Inline.FontSizeProperty).ToString();
 
                     rtbList[index].Focus();
-                    changed = true;
+                    activeRtbChanged[index] = true;
                 }
 
             }
@@ -478,7 +501,7 @@ namespace PZ2
             {
                 rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
             }
-            changed = true;
+            activeRtbChanged[index] = true;
             rtbList[index].Focus();
         }
 
@@ -554,11 +577,11 @@ namespace PZ2
                     {
                         rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
                     }
-                    changed = true;
+                    activeRtbChanged[index] = true;
                     rtbList[index].Focus();
                 }
             };
-            tabChild.TextChanged += (senderr, ee) => changed = true;
+            tabChild.TextChanged += (senderr, ee) => activeRtbChanged[index] = true;
 
             StackPanel sp = new StackPanel() { Orientation = Orientation.Horizontal };
 
@@ -586,15 +609,18 @@ namespace PZ2
 
             activeRtbFormatAsString.Add("");                    // New file doesn't have a DataFormat yet
 
+            activeRtbChanged.Add(false);                        // New file doesn't have any changes yet
+
             TabCntrl.Items.Add(tab);
 
-            foreach (TabItem el in TabCntrl.Items)
-            {
-                if (el.Equals(tab))
-                {
-                    el.Focus();
-                }
-            }
+            tab.Focus();
+            //foreach (TabItem el in TabCntrl.Items)
+            //{
+            //    if (el.Equals(tab))
+            //    {
+            //        el.Focus();
+            //    }
+            //}
         }
 
         private void Open_File_Command_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -659,11 +685,11 @@ namespace PZ2
                         {
                             rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
                         }
-                        changed = true;
+                        activeRtbChanged[index] = true;
                         rtbList[index].Focus();
                     }
                 };
-                tabChild.TextChanged += (senderr, ee) => changed = true;
+                tabChild.TextChanged += (senderr, ee) => activeRtbChanged[index] = true;
 
                 FileStream fileStream = new FileStream(dialog.FileName, FileMode.Open);                              
                 TextRange range = new TextRange(tabChild.Document.ContentStart, tabChild.Document.ContentEnd);       
@@ -706,22 +732,27 @@ namespace PZ2
 
                 rtbList.Add(tabChild);                                                                               // Add RTB to list of RTBs
 
+                activeRtbChanged.Add(false);                                                                         // Just opened tab doesn't have any changes
+
                 TabCntrl.Items.Add(tab);                                                                             // Add newly created Tab to TabControl
 
-                foreach (TabItem el in TabCntrl.Items)                                                               // Iterate through all the Tabs in TabControl
-                {
-                    if (el.Equals(tab))                                                                              // if it matches the newly created
-                    {
-                        el.Focus();                                                                                  // Set focus on it
-                    }
-                }
-                changed = false;
+                tab.Focus();
+
+                //foreach (TabItem el in TabCntrl.Items)                                                               // Iterate through all the Tabs in TabControl
+                //{
+                //    if (el.Equals(tab))                                                                              // if it matches the newly created
+                //    {
+                //        el.Focus();                                                                                  // Set focus on it
+                //    }
+                //}
+                activeRtbChanged[index] = false;
             }
         }
 
         private void Save_File_Command_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (changed)
+            index = TabCntrl.SelectedIndex;
+            if (activeRtbChanged[index])
             {
                 TabItem tab = (TabItem)rtbList[index].Parent;
                 if (((TextBlock)((StackPanel)tab.Header).Children[0]).Text == "New")            // Access the TextBlock that is inside the StackPanel which is stored in the header of a Tab
@@ -771,7 +802,7 @@ namespace PZ2
 
                         activeRtbFilePath[index] = absoluteFileName;
                     }
-                    changed = false;
+                    activeRtbChanged[index] = false;
                 }
             }
             
@@ -796,13 +827,14 @@ namespace PZ2
                     TextRange range = new TextRange(rtbList[activeRtbIndex].Document.ContentStart, rtbList[activeRtbIndex].Document.ContentEnd);
                     range.Save(fileStream, df.Name);
                     fileStream.Close();
-                    changed = false;
+                    activeRtbChanged[index] = false;
                 }
             }
         }
 
         private void SaveAs_File_Command_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            index = TabCntrl.SelectedIndex;
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "All files (*.*)|*.*| Rich Text Format (*.rtf)|*.rtf| Txt (*.txt)|*.txt";
             if (dialog.ShowDialog() == true)
@@ -847,7 +879,7 @@ namespace PZ2
 
                 activeRtbFilePath[index] = absoluteFileName;
             }
-            changed = false;
+            activeRtbChanged[index] = false;
         }
 
         private int Count_Number_Of_Words(string s)
@@ -861,7 +893,7 @@ namespace PZ2
             else
             {
                 counter = s.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).Length;
-                changed = true;
+                activeRtbChanged[index] = true;
             }
             
             return counter;
