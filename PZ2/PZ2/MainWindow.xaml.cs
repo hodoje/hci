@@ -60,43 +60,10 @@ namespace PZ2
             {
                 if (ee.Key == Key.F5)
                 {
-                    var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
-                    var selekcija = rtbList[index].Selection;
-                    var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
-                    var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
-
-                    txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
-                    txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
-                    txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
-                    txtRange.ApplyPropertyValue(Inline.FontWeightProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontWeightProperty));
-                    txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
-                    txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
-
-                    if (selekcija.Text == ceoTekst)
-                    {
-                        rtbList[index].Document.Blocks.Clear();
-                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-
-                        txtRange.Text = DateTime.Now.ToString();
-                    }
-                    else if (selekcija.Text == ceoTekstBezNevKar)
-                    {
-                        rtbList[index].Document.Blocks.Clear();
-                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-
-                        txtRange.Text = DateTime.Now.ToString();
-                    }
-                    else if (selekcija.Text != ceoTekst)
-                    {
-                        selekcija.Text = "";
-                        selekcija.Text = DateTime.Now.ToString();
-                    }
-
-                    if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
-                    {
-                        rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
-                    }
-                    activeRtbChanged[index] = true;
+                    rtbList[index].Selection.Text = DateTime.Now.ToString();
+                    rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(0);      
+                                                                                                             
+                    activeRtbChanged[index] = true;                                                          
                     rtbList[index].Focus();
                 }
             };
@@ -304,43 +271,10 @@ namespace PZ2
                             {
                                 if (ee.Key == Key.F5)
                                 {
-                                    var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
-                                    var selekcija = rtbList[index].Selection;
-                                    var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
-                                    var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
-
-                                    txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
-                                    txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
-                                    txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
-                                    txtRange.ApplyPropertyValue(Inline.FontWeightProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontWeightProperty));
-                                    txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
-                                    txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
-
-                                    if (selekcija.Text == ceoTekst)
-                                    {
-                                        rtbList[index].Document.Blocks.Clear();
-                                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-
-                                        txtRange.Text = DateTime.Now.ToString();
-                                    }
-                                    else if (selekcija.Text == ceoTekstBezNevKar)
-                                    {
-                                        rtbList[index].Document.Blocks.Clear();
-                                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-
-                                        txtRange.Text = DateTime.Now.ToString();
-                                    }
-                                    else if (selekcija.Text != ceoTekst)
-                                    {
-                                        selekcija.Text = "";
-                                        selekcija.Text = DateTime.Now.ToString();
-                                    }
-
-                                    if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
-                                    {
-                                        rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
-                                    }
-                                    activeRtbChanged[index] = true;
+                                    rtbList[index].Selection.Text = DateTime.Now.ToString();
+                                    rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(0);      
+                                                                                                                             
+                                    activeRtbChanged[index] = true;                                                          
                                     rtbList[index].Focus();
                                 }
                             };
@@ -641,43 +575,49 @@ namespace PZ2
 
         private void DateTimeButton_OnClick(object sender, RoutedEventArgs e)
         {
-            var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
-            var selekcija = rtbList[index].Selection;
-            var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
-            var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
+            //var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
+            //var selekcija = rtbList[index].Selection;
+            //var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
+            //var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
 
-            txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
-            txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
-            txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
-            txtRange.ApplyPropertyValue(Inline.FontWeightProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontWeightProperty));
-            txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
-            txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
+            //txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
+            //txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
+            //txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
+            //txtRange.ApplyPropertyValue(Inline.FontWeightProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontWeightProperty));
+            //txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
+            //txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
 
-            if (selekcija.Text == ceoTekst)
-            {
-                rtbList[index].Document.Blocks.Clear();
-                rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+            //selekcija.Text = DateTime.Now.ToString();
 
-                txtRange.Text = DateTime.Now.ToString();
-            }
-            else if (selekcija.Text == ceoTekstBezNevKar)
-            {
-                rtbList[index].Document.Blocks.Clear();
-                rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+            //if (selekcija.Text == ceoTekst)
+            //{
+            //    rtbList[index].Document.Blocks.Clear();
+            //    rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
 
-                txtRange.Text = DateTime.Now.ToString();
-            }
-            else if (selekcija.Text != ceoTekst)
-            {
-                selekcija.Text = "";
-                selekcija.Text = DateTime.Now.ToString();
-            }
+            //    txtRange.Text = DateTime.Now.ToString();
+            //}
+            //else if (selekcija.Text == ceoTekstBezNevKar)
+            //{
+            //    rtbList[index].Document.Blocks.Clear();
+            //    rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
 
-            if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
-            {
-                rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
-            }
-            activeRtbChanged[index] = true;
+            //    txtRange.Text = DateTime.Now.ToString();
+            //}
+            //else if (selekcija.Text != ceoTekst)
+            //{
+            //    selekcija.Text = "";
+            //    selekcija.Text = DateTime.Now.ToString();
+            //}
+
+            //if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
+            //{
+            //rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);      
+            //}                                                                                         
+
+            rtbList[index].Selection.Text = DateTime.Now.ToString();
+            rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(0);      // The offset can stay 0, but it's important that
+                                                                                                     // caret position changes so there will be a deselection of
+            activeRtbChanged[index] = true;                                                          // the selected text
             rtbList[index].Focus();
         }
 
@@ -717,43 +657,10 @@ namespace PZ2
             {
                 if (ee.Key == Key.F5)
                 {
-                    var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
-                    var selekcija = rtbList[index].Selection;
-                    var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
-                    var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
+                    rtbList[index].Selection.Text = DateTime.Now.ToString();
+                    rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(0);      
 
-                    txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
-                    txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
-                    txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
-                    txtRange.ApplyPropertyValue(Inline.FontWeightProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontWeightProperty));
-                    txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
-                    txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
-
-                    if (selekcija.Text == ceoTekst)
-                    {
-                        rtbList[index].Document.Blocks.Clear();
-                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-
-                        txtRange.Text = DateTime.Now.ToString();
-                    }
-                    else if (selekcija.Text == ceoTekstBezNevKar)
-                    {
-                        rtbList[index].Document.Blocks.Clear();
-                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-
-                        txtRange.Text = DateTime.Now.ToString();
-                    }
-                    else if (selekcija.Text != ceoTekst)
-                    {
-                        selekcija.Text = "";
-                        selekcija.Text = DateTime.Now.ToString();
-                    }
-
-                    if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
-                    {
-                        rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
-                    }
-                    activeRtbChanged[index] = true;
+                    activeRtbChanged[index] = true;                                                          
                     rtbList[index].Focus();
                 }
             };
@@ -818,43 +725,10 @@ namespace PZ2
                 {
                     if (ee.Key == Key.F5)
                     {
-                        var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
-                        var selekcija = rtbList[index].Selection;
-                        var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
-                        var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
-
-                        txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
-                        txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
-                        txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
-                        txtRange.ApplyPropertyValue(Inline.FontWeightProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontWeightProperty));
-                        txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
-                        txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
-
-                        if (selekcija.Text == ceoTekst)
-                        {
-                            rtbList[index].Document.Blocks.Clear();
-                            rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-
-                            txtRange.Text = DateTime.Now.ToString();
-                        }
-                        else if (selekcija.Text == ceoTekstBezNevKar)
-                        {
-                            rtbList[index].Document.Blocks.Clear();
-                            rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
-
-                            txtRange.Text = DateTime.Now.ToString();
-                        }
-                        else if (selekcija.Text != ceoTekst)
-                        {
-                            selekcija.Text = "";
-                            selekcija.Text = DateTime.Now.ToString();
-                        }
-
-                        if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
-                        {
-                            rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
-                        }
-                        activeRtbChanged[index] = true;
+                        rtbList[index].Selection.Text = DateTime.Now.ToString();
+                        rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(0);      
+                        
+                        activeRtbChanged[index] = true;                                                          
                         rtbList[index].Focus();
                     }
                 };
@@ -1043,23 +917,6 @@ namespace PZ2
             activeRtbChanged[index] = false;
         }
 
-        private int Count_Number_Of_Words(string s)
-        {
-            int counter = 0;
-            char[] delimiters = new char[] {' ', '\r', '\t', '\n'};
-            if (String.IsNullOrWhiteSpace(s))
-            {
-                counter = 0;
-            }
-            else
-            {
-                counter = s.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).Length;
-                activeRtbChanged[index] = true;
-            }
-            
-            return counter;
-        }
-
         private void Number_Of_Words_In_Rtb()
         {
             TextRange textRange = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd);
@@ -1087,6 +944,23 @@ namespace PZ2
         private void CmbFontSize_OnDropDownOpened(object sender, EventArgs e)
         {
             CmbFontSize.SelectedItem = null;
+        }
+
+        private int Count_Number_Of_Words(string s)
+        {
+            int counter = 0;
+            char[] delimiters = new char[] { ' ', '\r', '\t', '\n' };
+            if (String.IsNullOrWhiteSpace(s))
+            {
+                counter = 0;
+            }
+            else
+            {
+                counter = s.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).Length;
+                activeRtbChanged[index] = true;
+            }
+
+            return counter;
         }
     }
 }
