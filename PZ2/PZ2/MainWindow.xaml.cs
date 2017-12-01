@@ -216,7 +216,7 @@ namespace PZ2
                 ClrPcker.SelectedColor = null;
             }
 
-            if (rtbList[index].Selection.Text == "")
+            if (new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text == "")
             {
                 activeRtbChanged[index] = false;
             }
@@ -416,7 +416,7 @@ namespace PZ2
                     }
                 }
                 MessageBoxResult result =
-                    MessageBox.Show($"You have {numberOfNotSavedTabs} unsaved tabs, do you want to save your recent changes?",
+                    MessageBox.Show($"You have {numberOfNotSavedTabs} unsaved file(s), do you want to save your recent changes?",
                         "Exit", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Cancel)
                 {

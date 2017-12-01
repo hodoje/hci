@@ -35,7 +35,6 @@ namespace PZ2
         {
             InitializeComponent();
             FindTextBox.Focus();
-
         }
 
         private void FindAndReplaceButton_OnClick(object sender, RoutedEventArgs e)
