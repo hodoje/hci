@@ -27,6 +27,7 @@ namespace PZ2
         private static List<RichTextBox> rtbList = MainWindow.rtbList;
         private static List<string> activeRtbFilePath = MainWindow.activeRtbFilePath;
         private static List<string> activeRtbFormatAsString = MainWindow.activeRtbFormatAsString;
+        public static List<bool> activeRtbChanged = MainWindow.activeRtbChanged;
 
         private static int index = MainWindow.index;
 
@@ -49,10 +50,27 @@ namespace PZ2
             }
             else
             {
-                string completeText = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text.Replace(findWord, replaceWord);
-                rtbList[index].Document.Blocks.Clear();
-                rtbList[index].Document.Blocks.Add(new Paragraph(new Run(completeText)));
-                rtbList[index].CaretPosition = rtbList[index].Document.Blocks.LastBlock.ElementEnd;
+                StringBuilder sb = new StringBuilder();
+                string completeText =
+                    new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
+
+                int previousIndex = 0;
+                int idx = completeText.IndexOf(findWord, StringComparison.CurrentCultureIgnoreCase);
+                while (idx != -1)
+                {
+                    sb.Append(completeText.Substring(previousIndex, idx - previousIndex));
+                    sb.Append(replaceWord);
+                    idx += findWord.Length;
+
+                    previousIndex = idx;
+                    idx = completeText.IndexOf(findWord, idx, StringComparison.CurrentCultureIgnoreCase);
+                }
+                sb.Append(completeText.Substring(previousIndex));
+
+                rtbList[index].SelectAll();
+                rtbList[index].Selection.Text = sb.ToString();
+                rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(0);
+                activeRtbChanged[index] = true;
             }
         }
 

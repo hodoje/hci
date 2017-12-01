@@ -37,7 +37,7 @@ namespace PZ2
         public static List<string> activeRtbFormatAsString = new List<string>();               // Format of active RTB
         public static List<bool> activeRtbChanged = new List<bool>();                          // Track active RTB changes
 
-        public static int index;                                                               // Static indeces for tracking current RTB
+        public static int index;                                                               // Static index for tracking current RTB
 
         public MainWindow()
         {
@@ -214,6 +214,11 @@ namespace PZ2
             else
             {
                 ClrPcker.SelectedColor = null;
+            }
+
+            if (rtbList[index].Selection.Text == "")
+            {
+                activeRtbChanged[index] = false;
             }
         }
 
