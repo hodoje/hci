@@ -21,32 +21,32 @@
     <Grid Name="MainGrid" Height="Auto" Width="Auto" Margin="0,0,0,22">
         <DockPanel Name="DockPanel" Margin="0,0,0,0" Height="Auto" Width="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" >
             <ToolBar DockPanel.Dock="Top">
-                <Button Command="ApplicationCommands.New" Opacity="0.5">
+                <Button Command="ApplicationCommands.New" Opacity="0.5" ToolTip="New">
                     <Image Source="Images/add-file.png" Width="30" Height="30"></Image>
                 </Button>
-                <Button Command="ApplicationCommands.Open" Opacity="0.5">
+                <Button Command="ApplicationCommands.Open" Opacity="0.5" ToolTip="Open">
                     <Image Source="Images/opened-folder.png" Width="30" Height="30"></Image>
                 </Button>
-                <Button Command="ApplicationCommands.Save" Opacity="0.5">
+                <Button Command="ApplicationCommands.Save" Opacity="0.5" ToolTip="Save">
                     <Image Source="Images/save.png" Width="30" Height="30"></Image>
                 </Button>
-                <Button Command="ApplicationCommands.SaveAs" Opacity="0.5">
+                <Button Command="ApplicationCommands.SaveAs" Opacity="0.5" ToolTip="SaveAs">
                     <Image Source="Images/save-as.png" Width="30" Height="30"></Image>
                 </Button>
                 <Separator></Separator>
-                <ToggleButton Command="EditingCommands.ToggleBold" Name="BtnBold" Opacity="0.5">
+                <ToggleButton Command="EditingCommands.ToggleBold" Name="BtnBold" ToolTip="Bold" Opacity="0.5">
                     <Image Source="Images/bold.png" Width="30" Height="30"></Image>
                 </ToggleButton>
-                <ToggleButton Command="EditingCommands.ToggleItalic" Name="BtnItalic" Opacity="0.5">
+                <ToggleButton Command="EditingCommands.ToggleItalic" Name="BtnItalic" ToolTip="Italic" Opacity="0.5">
                     <Image Source="Images/italic.png" Width="30" Height="30"></Image>
                 </ToggleButton>
-                <ToggleButton Command="EditingCommands.ToggleUnderline" Name="BtnUnderline" Opacity="0.5">
+                <ToggleButton Command="EditingCommands.ToggleUnderline" Name="BtnUnderline" ToolTip="Underline" Opacity="0.5">
                     <Image Source="Images/underline.png" Width="30" Height="30"></Image>
                 </ToggleButton>
-                <Button Name="DateTimeButton" Click="DateTimeButton_OnClick" Opacity="0.5">
+                <Button Name="DateTimeButton" Click="DateTimeButton_OnClick" ToolTip="Date &amp; Time" Opacity="0.5">
                     <Image Source="Images/overtime.png" Width="30" Height="30"></Image>
                 </Button>
-                <Button Name="FindAndReplace" Click="FindAndReplace_OnClick" Opacity="0.5">
+                <Button Name="FindAndReplace" Click="FindAndReplace_OnClick" ToolTip="Find &amp; Replace" Opacity="0.5">
                     <Image Source="Images/find-and-replace.png" Width="30" Height="30"></Image>
                 </Button>
                 <Separator />

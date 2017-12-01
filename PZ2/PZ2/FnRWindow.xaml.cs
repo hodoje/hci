@@ -39,37 +39,55 @@ namespace PZ2
 
         private void FindAndReplaceButton_OnClick(object sender, RoutedEventArgs e)
         {
+            int cnt = 0;
             string findWord = FindTextBox.Text;
             string replaceWord = ReplaceTextBox.Text;
 
-            if (findWord.Equals(String.Empty) || replaceWord.Equals(String.Empty))
+            if (findWord.Equals(String.Empty) || replaceWord.Equals(String.Empty) && cnt > 0)
             {
                 MessageBoxResult emptyInput = MessageBox.Show("You need to enter both 'Find' and 'Replace' arguments.",
                     "Find & Replace", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
-                StringBuilder sb = new StringBuilder();
-                string completeText =
-                    new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
+                TextRange text = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd);
+                TextPointer current = text.Start.GetInsertionPosition(LogicalDirection.Forward);
 
-                int previousIndex = 0;
-                int idx = completeText.IndexOf(findWord, StringComparison.CurrentCultureIgnoreCase);
-                while (idx != -1)
+                while (current != null)
                 {
-                    sb.Append(completeText.Substring(previousIndex, idx - previousIndex));
-                    sb.Append(replaceWord);
-                    idx += findWord.Length;
+                    string textInRun = current.GetTextInRun(LogicalDirection.Forward);
+                    if (!string.IsNullOrWhiteSpace(textInRun))
+                    {
+                        int index = textInRun.IndexOf(findWord);
+                        if (index != -1)
+                        {
+                            TextPointer selectionStart = current.GetPositionAtOffset(index, LogicalDirection.Forward);
+                            TextPointer selectionEnd = selectionStart.GetPositionAtOffset(findWord.Length, LogicalDirection.Forward);
+                            TextRange selection = new TextRange(selectionStart, selectionEnd);
 
-                    previousIndex = idx;
-                    idx = completeText.IndexOf(findWord, idx, StringComparison.CurrentCultureIgnoreCase);
+                            object o = selection.GetPropertyValue(TextElement.FontFamilyProperty);                  // For some reason, it has to be like this
+                            object o1 = selection.GetPropertyValue(TextElement.ForegroundProperty);
+                            object o2 = selection.GetPropertyValue(Inline.TextDecorationsProperty);
+                            object o3 = selection.GetPropertyValue(TextElement.FontWeightProperty);
+                            object o4 = selection.GetPropertyValue(TextElement.FontStyleProperty);
+                            object o5 = selection.GetPropertyValue(Inline.FontSizeProperty);
+
+                            selection.Text = replaceWord;
+
+                            selection.ApplyPropertyValue(TextElement.FontFamilyProperty, o);
+                            selection.ApplyPropertyValue(TextElement.ForegroundProperty, o1);
+                            selection.ApplyPropertyValue(Inline.TextDecorationsProperty, o2);
+                            selection.ApplyPropertyValue(TextElement.FontWeightProperty, o3);
+                            selection.ApplyPropertyValue(TextElement.FontStyleProperty, o4);
+                            selection.ApplyPropertyValue(Inline.FontSizeProperty, o5);
+
+                            rtbList[index].Selection.Select(selection.Start, selection.End);
+                            cnt++;
+                            rtbList[index].Focus();
+                        }
+                    }
+                    current = current.GetNextContextPosition(LogicalDirection.Forward);
                 }
-                sb.Append(completeText.Substring(previousIndex));
-
-                rtbList[index].SelectAll();
-                rtbList[index].Selection.Text = sb.ToString();
-                rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(0);
-                activeRtbChanged[index] = true;
             }
         }
 
