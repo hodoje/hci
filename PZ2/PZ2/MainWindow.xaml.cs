@@ -266,10 +266,188 @@ namespace PZ2
                     rtbList[selRtbIndex].Focus();
                 }
             }
-            if(TabCntrl.Items.Count > 1)
+
+            TabCntrl.SelectedItem = t;
+
+            if (activeRtbChanged[selRtbIndex])
             {
-                TabItem delT = (TabItem)rtbList[selRtbIndex].Parent;
-                TabCntrl.Items.Remove(delT);
+                MessageBoxResult result =
+                    MessageBox.Show($"You have some unsaved changes, do you want to save your progress?",
+                        "Exit", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Cancel)
+                {
+
+                }
+                else if (result == MessageBoxResult.No)
+                {
+                    if (TabCntrl.Items.Count > 0)
+                    {
+                        activeRtbChanged.RemoveAt(selRtbIndex);
+                        activeRtbFilePath.RemoveAt(selRtbIndex);
+                        activeRtbFormatAsString.RemoveAt(selRtbIndex);
+                        rtbList.RemoveAt(selRtbIndex);
+                        TabCntrl.Items.Remove(t);
+
+                        if (TabCntrl.Items.Count == 0)
+                        {
+                            TabItem tab = new TabItem();
+
+                            RichTextBox tabChild = new RichTextBox();
+
+                            tabChild.SelectionChanged += RtbEditor_SelectionChanged;
+                            tabChild.BorderThickness = new Thickness(1, 1, 1, 1);
+                            tabChild.Margin = new Thickness(0, 0, 0, 0);
+                            tabChild.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+                            tabChild.AcceptsTab = true;
+                            tabChild.Loaded += (senderr, ee) => tabChild.Focus();
+                            tabChild.KeyUp += (senderr, ee) =>
+                            {
+                                if (ee.Key == Key.F5)
+                                {
+                                    var txtRange = new TextRange(rtbList[index].CaretPosition, rtbList[index].CaretPosition);
+                                    var selekcija = rtbList[index].Selection;
+                                    var ceoTekst = new TextRange(rtbList[index].Document.ContentStart, rtbList[index].Document.ContentEnd).Text;
+                                    var ceoTekstBezNevKar = ceoTekst.Substring(0, ceoTekst.Length - 2);
+
+                                    txtRange.ApplyPropertyValue(Inline.ForegroundProperty, rtbList[index].Selection.GetPropertyValue(Inline.ForegroundProperty));
+                                    txtRange.ApplyPropertyValue(Inline.FontFamilyProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontFamilyProperty));
+                                    txtRange.ApplyPropertyValue(Inline.FontSizeProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontSizeProperty));
+                                    txtRange.ApplyPropertyValue(Inline.FontWeightProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontWeightProperty));
+                                    txtRange.ApplyPropertyValue(Inline.FontStyleProperty, rtbList[index].Selection.GetPropertyValue(Inline.FontStyleProperty));
+                                    txtRange.ApplyPropertyValue(Inline.TextDecorationsProperty, rtbList[index].Selection.GetPropertyValue(Inline.TextDecorationsProperty));
+
+                                    if (selekcija.Text == ceoTekst)
+                                    {
+                                        rtbList[index].Document.Blocks.Clear();
+                                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                                        txtRange.Text = DateTime.Now.ToString();
+                                    }
+                                    else if (selekcija.Text == ceoTekstBezNevKar)
+                                    {
+                                        rtbList[index].Document.Blocks.Clear();
+                                        rtbList[index].CaretPosition = rtbList[index].Document.ContentStart;
+
+                                        txtRange.Text = DateTime.Now.ToString();
+                                    }
+                                    else if (selekcija.Text != ceoTekst)
+                                    {
+                                        selekcija.Text = "";
+                                        selekcija.Text = DateTime.Now.ToString();
+                                    }
+
+                                    if (rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length) != null)
+                                    {
+                                        rtbList[index].CaretPosition = rtbList[index].CaretPosition.GetPositionAtOffset(txtRange.Text.Length);
+                                    }
+                                    activeRtbChanged[index] = true;
+                                    rtbList[index].Focus();
+                                }
+                            };
+                            tabChild.TextChanged += (senderr, ee) => activeRtbChanged[index] = true;
+
+                            StackPanel stackPanel = new StackPanel() { Orientation = Orientation.Horizontal };
+
+                            TextBlock tb = new TextBlock();
+                            tb.Text = "New";
+                            stackPanel.Children.Add(tb);
+
+                            Button b = new Button();
+                            b.Content = "X";
+                            b.Background = new ImageBrush();
+                            b.BorderThickness = new Thickness(0, 0, 0, 0);
+                            b.Width = 17;
+                            b.Height = 17;
+                            b.Foreground = Brushes.Red;
+                            b.Click += CloseTab;
+                            stackPanel.Children.Add(b);
+
+                            tab.Header = stackPanel;
+
+                            tab.Content = tabChild;
+
+                            rtbList.Add(tabChild);
+
+                            activeRtbFilePath.Add("");                          // New file doesn't have a path yet
+
+                            activeRtbFormatAsString.Add("");                    // New file doesn't have a DataFormat yet
+
+                            activeRtbChanged.Add(false);                        // New file doesn't have any changes yet
+
+                            TabCntrl.Items.Add(tab);
+
+                            tab.Focus();
+                        }
+                    }
+
+
+                }
+                else if (result == MessageBoxResult.Yes)
+                {
+                    if (TabCntrl.Items.Count > 0)
+                    {
+                        t.Focus();
+
+                        if (((TextBlock) ((StackPanel) t.Header).Children[0]).Text == "New")
+                        {
+                            SaveFileDialog dialog = new SaveFileDialog();
+                            dialog.Filter = "All files (*.*)|*.*| Rich Text Format (*.rtf)|*.rtf| Txt (*.txt)|*.txt";
+                            if (dialog.ShowDialog() == true)
+                            {
+                                FileStream fileStream = new FileStream(dialog.FileName, FileMode.Create);
+                                TextRange range = new TextRange(rtbList[index].Document.ContentStart,
+                                    rtbList[index].Document.ContentEnd);
+                                if (dialog.FilterIndex == 1 || dialog.FilterIndex == 3)
+                                    range.Save(fileStream, DataFormats.Text);
+                                else
+                                    range.Save(fileStream, DataFormats.Rtf);
+                                fileStream.Close();
+
+                                string absoluteFileName = dialog.FileName;
+                                int slashLastIndex = absoluteFileName.LastIndexOf('\\');
+                                string relativeFileName = absoluteFileName.Substring(slashLastIndex + 1);
+
+                                activeRtbChanged.RemoveAt(selRtbIndex);
+                                activeRtbFilePath.RemoveAt(selRtbIndex);
+                                activeRtbFormatAsString.RemoveAt(selRtbIndex);
+                                rtbList.RemoveAt(selRtbIndex);
+                                TabCntrl.Items.Remove(t);
+                            }
+                        }
+                        else
+                        {
+                            if (activeRtbFormatAsString[selRtbIndex] != "")
+                            {
+                                DataFormat df = DataFormats.GetDataFormat(activeRtbFormatAsString[selRtbIndex]);
+                                FileStream fileStream = new FileStream(activeRtbFilePath[selRtbIndex],
+                                    FileMode.Create, FileAccess.Write);
+                                TextRange range = new TextRange(rtbList[selRtbIndex].Document.ContentStart,
+                                    rtbList[selRtbIndex].Document.ContentEnd);
+                                range.Save(fileStream, df.Name);
+                                fileStream.Close();
+
+                                activeRtbChanged.RemoveAt(selRtbIndex);
+                                activeRtbFilePath.RemoveAt(selRtbIndex);
+                                activeRtbFormatAsString.RemoveAt(selRtbIndex);
+                                rtbList.RemoveAt(selRtbIndex);
+                                TabCntrl.Items.Remove(t);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (TabCntrl.Items.Count > 1)
+                {
+                    t.Focus();
+
+                    activeRtbChanged.RemoveAt(selRtbIndex);
+                    activeRtbFilePath.RemoveAt(selRtbIndex);
+                    activeRtbFormatAsString.RemoveAt(selRtbIndex);
+                    rtbList.RemoveAt(selRtbIndex);
+                    TabCntrl.Items.Remove(t);
+                }
             }
         }
 
@@ -281,7 +459,6 @@ namespace PZ2
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
             bool atLeastOnechanged = false;
-
             foreach (RichTextBox rtb in rtbList)
             {
                 if (activeRtbChanged[rtbList.IndexOf(rtb)])
@@ -289,7 +466,6 @@ namespace PZ2
                     atLeastOnechanged = true;
                 }
             }
-
             if (atLeastOnechanged)
             {
                 int numberOfNotSavedTabs = 0;
@@ -317,7 +493,7 @@ namespace PZ2
                     foreach (TabItem tab in TabCntrl.Items)
                     {
                         tab.Focus();
-                        if (((TextBlock) ((StackPanel) tab.Header).Children[0]).Text == "New")
+                        if (((TextBlock)((StackPanel)tab.Header).Children[0]).Text == "New")
                         {
                             SaveFileDialog dialog = new SaveFileDialog();
                             dialog.Filter = "All files (*.*)|*.*| Rich Text Format (*.rtf)|*.rtf| Txt (*.txt)|*.txt";
@@ -340,8 +516,8 @@ namespace PZ2
                         }
                         else
                         {
-                            TabItem activeTab = (TabItem) TabCntrl.SelectedItem;
-                            RichTextBox activeRtb = (RichTextBox) activeTab.Content;
+                            TabItem activeTab = (TabItem)TabCntrl.SelectedItem;
+                            RichTextBox activeRtb = (RichTextBox)activeTab.Content;
                             int activeRtbIndex = 0;
 
                             foreach (var rtb in rtbList)
@@ -614,13 +790,6 @@ namespace PZ2
             TabCntrl.Items.Add(tab);
 
             tab.Focus();
-            //foreach (TabItem el in TabCntrl.Items)
-            //{
-            //    if (el.Equals(tab))
-            //    {
-            //        el.Focus();
-            //    }
-            //}
         }
 
         private void Open_File_Command_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -703,7 +872,6 @@ namespace PZ2
                     range.Load(fileStream, DataFormats.Text);                                                        // Does not support docx files
                     activeRtbFormatAsString.Add(DataFormats.Text.ToString());                                        // Save DataFormat of loaded file
                 }                                                                                                 
-
                 fileStream.Close();
 
                 activeRtbFilePath.Add(absoluteFileName);
@@ -738,13 +906,6 @@ namespace PZ2
 
                 tab.Focus();
 
-                //foreach (TabItem el in TabCntrl.Items)                                                               // Iterate through all the Tabs in TabControl
-                //{
-                //    if (el.Equals(tab))                                                                              // if it matches the newly created
-                //    {
-                //        el.Focus();                                                                                  // Set focus on it
-                //    }
-                //}
                 activeRtbChanged[index] = false;
             }
         }
