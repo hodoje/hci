@@ -10,16 +10,17 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace NetworkService.Views
 {
     /// <summary>
-    /// Interaction logic for ChartDataView.xaml
+    /// Interaction logic for NetworkViewView.xaml
     /// </summary>
-    public partial class ChartDataView : Window
+    public partial class NetworkViewView : UserControl
     {
-        public ChartDataView()
+        public NetworkViewView()
         {
             InitializeComponent();
         }
