@@ -12,7 +12,42 @@
     <!-- With 'xmlns:views="clr-namespace:NetworkService.Views"' we've included Views to the Main Window -->
     <!-- With 'xmlns:viewModel="clr-namespace:NetworkService.ViewModel"' we've included ViewModels to the Main Window -->
     <!-- With 'xmlns:vml="clr-namespace:NetworkService.VML"' we've included the ViewModelLocator to the Main Window-->
+    <Window.DataContext>
+        <local:AllViewModelsContainer/>
+    </Window.DataContext>
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type viewModel:NetworkViewViewModel}">
+            <views:NetworkViewView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModel:NetworkDataViewModel}">
+            <views:NetworkDataView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModel:ChartDataViewModel}">
+            <views:ChartDataView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModel:ReportViewModel}">
+            <views:ReportView/>
+        </DataTemplate>
+    </Window.Resources>
     <Grid>
-        <views:NetworkViewView x:Name="NetworkViewViewControl"></views:NetworkViewView>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <DockPanel Grid.Row="0" Margin="5">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Network View" Command="{Binding NavCommand}" CommandParameter="networkView"/>
+                <MenuItem Header="Network Data" Command="{Binding NavCommand}" CommandParameter="networkData"/>
+                <MenuItem Header="Chart" Command="{Binding NavCommand}" CommandParameter="chartData"/>
+                <MenuItem Header="Report" Command="{Binding NavCommand}" CommandParameter="report"/>
+            </Menu>
+        </DockPanel>
+
+        <Grid Grid.Row="1">
+            <ContentControl Content="{Binding CurrentViewModel}"/>
+        </Grid>
     </Grid>
+    
 </Window>

@@ -55,8 +55,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AllViewModelsContainer.cs" />
+    <Compile Include="BindableBase.cs" />
     <Compile Include="Models\Type.cs" />
     <Compile Include="Models\Types.cs" />
+    <Compile Include="MyICommand.cs" />
     <Compile Include="ViewModel\ChartDataViewModel.cs" />
     <Compile Include="ViewModel\NetworkDataViewModel.cs" />
     <Compile Include="ViewModel\NetworkViewViewModel.cs" />

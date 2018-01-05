@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NetworkService.ViewModel
 {
-    public class NetworkViewViewModel
+    public class NetworkViewViewModel : BindableBase
     {
         // ObservableCollection represents a dynamic data collection that provides notifications when items get added, removed or when the whole list is refreshed
         // Essentially, it works like a regular collection, except that it implements the interfaces "INotifyCollectionChanged" and "INotifyPropertyChanged"
