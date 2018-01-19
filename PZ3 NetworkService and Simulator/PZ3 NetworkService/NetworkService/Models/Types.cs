@@ -27,8 +27,8 @@ namespace NetworkService.Models
         public List<Type> ListOfTypes = new List<Type>
         {
             new Type() { NAME = "Select type", IMG_URL = "" },
-            new Type() { NAME = "IA", IMG_URL = "/Images/highway.png"},
-            new Type() { NAME = "IB", IMG_URL = "/Images/motorway.png"}
+            new Type() { NAME = "IA", IMG_URL = "pack://application:,,,/Images/highway.png"},
+            new Type() { NAME = "IB", IMG_URL = "pack://application:,,,/Images/motorway.png"}
         };
     }
 }

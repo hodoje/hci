@@ -8,27 +8,60 @@ using NetworkService.Models;
 
 namespace NetworkService.ViewModel
 {
-    public class NetworkViewViewModel : BindableBase
+    public class NetworkViewViewModel : BindableBase, INotify
     {
+        private DataIO serializer = new DataIO();
+
+        private Road _currentRoad;
+
         // ObservableCollection represents a dynamic data collection that provides notifications when items get added, removed or when the whole list is refreshed
         // Essentially, it works like a regular collection, except that it implements the interfaces "INotifyCollectionChanged" and "INotifyPropertyChanged"
         // As such, it is very useful when we want to know when the collection has changed, it allows the code outside the collection to be aware of when changes to the collection occur
         // An event is triggered that will tell the user that entries have been added/removed or moved
-        public ObservableCollection<Road> Roads { get; set; }
+        public ObservableCollection<Road> Roads
+        {
+            get
+            {
+                return RoadsObs.Instance.Roads;
+            }
+
+            set
+            {
+                if (RoadsObs.Instance.Roads != value)
+                {
+                    RoadsObs.Instance.Roads = value;
+                    OnPropertyChanged("Roads");
+                }
+            }
+        }
 
         public NetworkViewViewModel()
         {
-            LoadRoads();
+            Roads.Clear();                                                                                          // We clear the list of the old elements
+            if (serializer.DeSerializeObject<ObservableCollection<Road>>("roads.xml") != null)
+            {
+                serializer.DeSerializeObject<ObservableCollection<Road>>("roads.xml").ToList().ForEach(Roads.Add);  // And then we deserialize the file holding a list of Roads
+            }
+
+            NotifiedVms.Instance.Register(this);
         }
 
-        public void LoadRoads()
+        public Road CurrentRoad
         {
-            ObservableCollection<Road> roads = new ObservableCollection<Road>();
+            get { return _currentRoad; }
+            set
+            {
+                if (_currentRoad != value)
+                {
+                    _currentRoad = value;
+                    OnPropertyChanged("CurrentRoad");
+                }
+            }
+        }
 
-            //roads.Add(new Road { Id = 1, Label = "M70", Type = new NetworkService.Models.Type() { NAME = Types.Instance.ListOfTypes[0].NAME, IMG_URL = Types.Instance.ListOfTypes[0].IMG_URL }, Value = 2000} );
-            //roads.Add(new Road { Id = 2, Label = "M75", Type = new NetworkService.Models.Type() { NAME = Types.Instance.ListOfTypes[1].NAME, IMG_URL = Types.Instance.ListOfTypes[1].IMG_URL }, Value = 3000 });
-
-            Roads = roads;
+        public void Notify(Road changedRoad)
+        {
+            CurrentRoad = changedRoad;
         }
     }
 }

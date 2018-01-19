@@ -10,7 +10,7 @@ using NetworkService.Models;
 
 namespace NetworkService.ViewModel
 {
-    public class ReportViewModel : BindableBase
+    public class ReportViewModel : BindableBase, INotify
     {
         public MyICommand ShowCommand { get; set; }
 
@@ -19,6 +19,8 @@ namespace NetworkService.ViewModel
         public ReportViewModel()
         {
             ShowCommand = new MyICommand(OnShow);
+
+            NotifiedVms.Instance.Register(this);
         }
 
         public string ReportText
@@ -199,6 +201,11 @@ namespace NetworkService.ViewModel
                 result = false;
             }
             return result;
+        }
+
+        public void Notify(Road changedRoad)
+        {
+            //throw new NotImplementedException();
         }
     }
 }

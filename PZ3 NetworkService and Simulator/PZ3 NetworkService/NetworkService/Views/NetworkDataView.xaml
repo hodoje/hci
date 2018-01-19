@@ -43,8 +43,8 @@
                 </Style.Setters>
             </Style>
         </Grid.Resources>
-        <Button Name="ButtonAdd" Command="{Binding AddOpenCommand}" Height="50" Width="200" Content="Add road" FontSize="30" Margin="65,10,335,520"></Button>
-        <Button Name="ButtonDelete" Command="{Binding DeleteCommand}" Height="50" Width="200" Content="Delete road" FontSize="30" Margin="335,10,65,520"></Button>
+        <Button Name="ButtonAdd" Command="{Binding AddOpenCommand}" Background="WhiteSmoke" Height="50" Width="200" Content="Add road" FontSize="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,20,0,0"></Button>
+        <Button Name="ButtonDelete" Command="{Binding DeleteCommand}" Background="WhiteSmoke" Height="50" Width="200" Content="Delete road" FontSize="30" HorizontalAlignment="Right" VerticalAlignment="Top" RenderTransformOrigin="0.435,0.92" Margin="0,20,10,0"></Button>
         <DataGrid Name="MainGrid" Margin="10,100,10,150" RowHeight="50" ColumnWidth="*" MaxHeight="350" VerticalScrollBarVisibility="Auto" ItemsSource="{Binding Path=FilterCollection.View}" SelectedItem="{Binding Path=SelectedRoad}" IsSynchronizedWithCurrentItem="True" AutoGenerateColumns="False" SelectionMode="Single" IsReadOnly="True" CanUserResizeColumns="False">
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="{x:Type DataGridColumnHeader}">
@@ -66,9 +66,9 @@
                 <DataGridTextColumn Header="Value" Binding="{Binding Path=Value}" FontSize="30"></DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <ComboBox x:Name="FilterTypeComboBox" FontSize="20" ItemsSource="{Binding TpsList}" SelectedItem="{Binding FilterType}" HorizontalAlignment="Left" Margin="10,470,0,0" VerticalAlignment="Top" Width="130" Height="40" RenderTransformOrigin="0.68,-0.45"/>
+        <ComboBox x:Name="FilterTypeComboBox" FontSize="20" ItemsSource="{Binding TpsList}" SelectedItem="{Binding FilterType}" HorizontalAlignment="Left" Margin="10,470,0,0" VerticalAlignment="Top" Width="130" Height="40"/>
         <TextBox x:Name="FilterTextBox" Text="{Binding SearchName}" Height="40" Width="170" FontSize="20" Margin="180,470,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"></TextBox>
-        <Button x:Name="FilterButton" Command="{Binding FilterCommand}" Height="40" Width="80" Content="Filter" FontSize="20" Margin="390,470,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"></Button>
-        <Button x:Name="ClearButton" Command="{Binding ClearCommand}" Height="40" Width="80" Content="Clear" FontSize="20" Margin="510,470,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.338,3.2"></Button>
+        <Button x:Name="FilterButton" Background="WhiteSmoke" Command="{Binding FilterCommand}" Height="40" Width="80" Content="Filter" FontSize="20" Margin="390,470,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"></Button>
+        <Button x:Name="ClearButton" Background="WhiteSmoke" Command="{Binding ClearCommand}" Height="40" Width="80" Content="Clear" FontSize="20" Margin="510,470,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.338,3.2"></Button>
     </Grid>
 </UserControl>

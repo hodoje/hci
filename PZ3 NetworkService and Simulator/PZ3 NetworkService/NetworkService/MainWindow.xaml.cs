@@ -18,12 +18,14 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using NetworkService.Models;
 using System.Collections.ObjectModel;
+using NetworkService.ViewModel;
+using NetworkService.Views;
 
 namespace NetworkService
 {
     public partial class MainWindow : Window
     {
-        private int count = 15; // Inicijalna vrednost broja objekata u sistemu
+        //private int count = 15; // Inicijalna vrednost broja objekata u sistemu
                                 // ######### ZAMENITI stvarnim brojem elemenata
 
         private DataIO serializer = new DataIO();
@@ -75,39 +77,66 @@ namespace NetworkService
                             //################ IMPLEMENTACIJA ####################
                             // Obraditi poruku kako bi se dobile informacije o izmeni
                             // Azuriranje potrebnih stvari u aplikaciji
-                            if (Int32.TryParse(incomming.Split('_')[1].Split(':')[0], out int n))
+                            if (RoadsObs.Instance.Roads.Count > 0)
                             {
-                                string path = "log.txt";
-                                int roadIndex = Int32.Parse(incomming.Split('_')[1].Split(':')[0]);
-                                if (roadIndex < RoadsObs.Instance.Roads.Count + 1)
+                                if (Int32.TryParse(incomming.Split('_')[1].Split(':')[0], out int n))
                                 {
-                                    double value = Double.Parse(incomming.Split(':')[1]);
-                                    RoadsObs.Instance.Roads[roadIndex].Value = value;
-
-                                    Road r = new Road();
-                                    r = RoadsObs.Instance.Roads[roadIndex];
-
-                                    serializer.SerializeObject<ObservableCollection<Road>>(RoadsObs.Instance.Roads, "roads.xml");
-
-                                    if (!File.Exists(path))
+                                    string path = "log.txt";
+                                    int roadIndex = Int32.Parse(incomming.Split('_')[1].Split(':')[0]);
+                                    if (roadIndex < RoadsObs.Instance.Roads.Count + 1)
                                     {
-                                        File.Create(path);
-                                        using (var tw = new StreamWriter(path))
+                                        double value = Double.Parse(incomming.Split(':')[1]);
+                                        RoadsObs.Instance.Roads[roadIndex].Value = value;
+
+                                        if (RoadsObs.Instance.Roads[roadIndex].Type.NAME == "IA")
                                         {
-                                            tw.WriteLine(
-                                                $"{DateTime.Now},{r.Id},Value:{r.Value}");
-                                            tw.Close();
+                                            if (value > 15000)
+                                            {
+                                                RoadsObs.Instance.Roads[roadIndex].ShouldWarn = "Red";
+                                            }
+                                            else
+                                            {
+                                                RoadsObs.Instance.Roads[roadIndex].ShouldWarn = "Transparent";
+                                            }
+                                        }
+                                        else if (RoadsObs.Instance.Roads[roadIndex].Type.NAME == "IB")
+                                        {
+                                            if (value > 7000)
+                                            {
+                                                RoadsObs.Instance.Roads[roadIndex].ShouldWarn = "Red";
+                                            }
+                                            else
+                                            {
+                                                RoadsObs.Instance.Roads[roadIndex].ShouldWarn = "Transparent";
+                                            }
+                                        }
+
+                                        Road r = new Road();
+                                        r = RoadsObs.Instance.Roads[roadIndex];
+                                        NotifiedVms.Instance.NotifyAll(r);
+
+                                        serializer.SerializeObject<ObservableCollection<Road>>(RoadsObs.Instance.Roads, "roads.xml");
+
+                                        if (!File.Exists(path))
+                                        {
+                                            File.Create(path);
+                                            using (var tw = new StreamWriter(path))
+                                            {
+                                                tw.WriteLine(
+                                                    $"{DateTime.Now},{r.Id},Value:{r.Value}");
+                                                tw.Close();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            using (var tw = new StreamWriter(path, true))
+                                            {
+                                                tw.WriteLine(
+                                                    $"{DateTime.Now},{r.Id},Value:{r.Value}");
+                                                tw.Close();
+                                            }
                                         }
                                     }
-                                    else
-                                    {
-                                        using (var tw = new StreamWriter(path, true))
-                                        {
-                                            tw.WriteLine(
-                                                $"{DateTime.Now},{r.Id},Value:{r.Value}");
-                                            tw.Close();
-                                        }
-                                    }                               
                                 }
                             }
                         }

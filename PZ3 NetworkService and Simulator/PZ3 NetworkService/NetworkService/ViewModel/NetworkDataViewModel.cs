@@ -14,7 +14,7 @@ using NetworkService.Models;
 
 namespace NetworkService.ViewModel
 {
-    public class NetworkDataViewModel : BindableBase
+    public class NetworkDataViewModel : BindableBase, INotify
     {
         private DataIO serializer = new DataIO();
 
@@ -88,6 +88,9 @@ namespace NetworkService.ViewModel
             CancelCommand = new MyICommand(OnCancel);
             FilterCommand = new MyICommand(OnFilter);
             ClearCommand = new MyICommand(OnClear);
+
+            NotifiedVms.Instance.Register(this);
+            //ovde registrujemo ovaj VM da bude u listi u singletonu i prosledimo this, a taj this implementira neki nas interfejs
         }
 
         // Properties
@@ -488,6 +491,17 @@ namespace NetworkService.ViewModel
                 }
             }
             return result;
+        }
+
+        public void Notify(Road changedRoad)
+        {
+            foreach (Road r in Roads)
+            {
+                if (r.Equals(changedRoad))
+                {
+                    r.Value = changedRoad.Value;
+                }
+            }
         }
     }
 }

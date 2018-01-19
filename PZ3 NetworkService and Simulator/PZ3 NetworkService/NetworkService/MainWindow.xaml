@@ -8,7 +8,7 @@
         xmlns:viewModel="clr-namespace:NetworkService.ViewModel"
         xmlns:vml="clr-namespace:NetworkService.VML"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="650" ResizeMode="NoResize">
+        Title="MainWindow" Height="600" Width="650" ResizeMode="NoResize" Background="LightGray">
     <!-- With 'xmlns:views="clr-namespace:NetworkService.Views"' we've included Views to the Main Window -->
     <!-- With 'xmlns:viewModel="clr-namespace:NetworkService.ViewModel"' we've included ViewModels to the Main Window -->
     <!-- With 'xmlns:vml="clr-namespace:NetworkService.VML"' we've included the ViewModelLocator to the Main Window-->

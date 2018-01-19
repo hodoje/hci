@@ -37,6 +37,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -57,12 +59,16 @@
     </ApplicationDefinition>
     <Compile Include="AllViewModelsContainer.cs" />
     <Compile Include="BindableBase.cs" />
+    <Compile Include="CanvasImage.cs" />
     <Compile Include="DataIO.cs" />
+    <Compile Include="Models\INotify.cs" />
+    <Compile Include="Models\NotifiedVms.cs" />
     <Compile Include="Models\RoadsObs.cs" />
     <Compile Include="Models\Type.cs" />
     <Compile Include="Models\Types.cs" />
     <Compile Include="MyICommand.cs" />
     <Compile Include="ViewModel\ChartDataViewModel.cs" />
+    <Compile Include="ViewModel\LittleCanvasViewModel.cs" />
     <Compile Include="ViewModel\NetworkDataViewModel.cs" />
     <Compile Include="ViewModel\NetworkViewViewModel.cs" />
     <Compile Include="ViewModel\ReportViewModel.cs" />
@@ -71,6 +77,9 @@
     </Compile>
     <Compile Include="Views\ChartDataView.xaml.cs">
       <DependentUpon>ChartDataView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LittleCanvasView.xaml.cs">
+      <DependentUpon>LittleCanvasView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\NetworkDataView.xaml.cs">
       <DependentUpon>NetworkDataView.xaml</DependentUpon>
@@ -100,6 +109,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\ChartDataView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LittleCanvasView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -17,6 +17,7 @@ namespace NetworkService.Models
         private string _label;
         private Type _type;
         private double _value;
+        private string _shouldWarn;
 
         public int Id
         {
@@ -71,6 +72,19 @@ namespace NetworkService.Models
             }
         }
 
+        public string ShouldWarn
+        {
+            get { return _shouldWarn; }
+            set
+            {
+                if (_shouldWarn != value)
+                {
+                    _shouldWarn = value;
+                    RaisePropertyChanged("ShouldWarn");
+                }
+            }
+        }
+
         public Road() { }
 
         public Road(int id, string label, Type type)
@@ -79,6 +93,7 @@ namespace NetworkService.Models
             _label = label;
             _type = type;
             _value = -1;
+            _shouldWarn = "Transparent";
         }
 
         // Declare the PropertyChanged event
@@ -95,6 +110,11 @@ namespace NetworkService.Models
                 // (it provides the PropertyName property to get the name of the property that changed)
                 PropertyChanged(this, new PropertyChangedEventArgs(property));
             }
+        }
+
+        public override string ToString()
+        {
+            return $"ID: {Id}, L: {Label}";
         }
     }
 }
