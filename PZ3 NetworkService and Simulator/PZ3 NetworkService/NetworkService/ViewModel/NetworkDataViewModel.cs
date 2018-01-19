@@ -102,6 +102,7 @@ namespace NetworkService.ViewModel
             {
                 _selectedRoad = value;
                 DeleteCommand.RaiseCanExecuteChanged();
+                OnPropertyChanged("SelectedRoad");
             }
         }
 

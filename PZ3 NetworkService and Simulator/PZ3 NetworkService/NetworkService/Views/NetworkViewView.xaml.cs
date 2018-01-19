@@ -75,7 +75,7 @@ namespace NetworkService.Views
             this.DataContext = new NetworkService.ViewModel.NetworkViewViewModel();
             vm = (NetworkViewViewModel) (this.DataContext);
             SetGrid();
-            SetListView();
+            //SetListView();
             CheckColor();
         }
 
@@ -85,9 +85,9 @@ namespace NetworkService.Views
             {
                 this.Dispatcher.Invoke(() =>
                 {
-                    if (CurrentRoad != null)
+                    if (NotifiedVms.Instance.CurrentRoad != null)
                     {
-                        if (OnGridCollection.ContainsValue(CurrentRoad))
+                        if (OnGridCollection.ContainsValue(NotifiedVms.Instance.CurrentRoad))
                         {
                             foreach (var gridEl in OnGridCollection)
                             {
@@ -171,9 +171,31 @@ namespace NetworkService.Views
 
                         // Set the target canvas background
                         ((Canvas) sender).Background = new ImageBrush(logo);
+                        if (currentDraggedItem.Type.NAME == "IA")
+                        {
+                            if (currentDraggedItem.Value > 15000)
+                            {
+                                ((Canvas)(((Canvas)sender).Children[2])).Background = Brushes.Red;
+                            }
+                            else
+                            {
+                                ((Canvas)(((Canvas)sender).Children[2])).Background = Brushes.Transparent;
+                            }
+                        }
+                        else
+                        {
+                            if (currentDraggedItem.Value > 7000)
+                            {
+                                ((Canvas)(((Canvas)sender).Children[2])).Background = Brushes.Red;
+                            }
+                            else
+                            {
+                                ((Canvas)(((Canvas)sender).Children[2])).Background = Brushes.Transparent;
+                            }
+                        }
 
                         // Set partial data for the correct TextBlock under the Canvas
-                        ((TextBlock)((Canvas)sender).Children[1]).Text = currentDraggedItem.ToString();
+                        ((TextBox)((Canvas)sender).Children[1]).Text = currentDraggedItem.ToString();
 
                         ((Canvas)sender).Resources.Add("taken", true);
 
@@ -228,27 +250,57 @@ namespace NetworkService.Views
 
         private void SetGrid()
         {
-            foreach (var el in OnGridCollection)
+            foreach(Road road in RoadsObs.Instance.Roads)
             {
-                foreach (Canvas can in ListOfCanvases)
+                foreach (var el in OnGridCollection)
                 {
-                    if (el.Key == can.Name)
+                    if(road.Id == el.Value.Id)
                     {
-                        BitmapImage logo = new BitmapImage();
-                        logo.BeginInit();
-                        logo.UriSource = new Uri(el.Value.Type.IMG_URL, UriKind.RelativeOrAbsolute);
-                        logo.EndInit();
-
-                        // Set the target canvas background
-                        can.Background = new ImageBrush(logo);
-
-                        ((TextBlock)can.Children[1]).Text = el.Value.ToString();
-
-                        if (!OnGridIds.Contains(el.Value.Id))
+                        foreach (Canvas can in ListOfCanvases)
                         {
-                            OnGridIds.Add(el.Value.Id);
+                            if (el.Key == can.Name)
+                            {
+                                BitmapImage logo = new BitmapImage();
+                                logo.BeginInit();
+                                logo.UriSource = new Uri(el.Value.Type.IMG_URL, UriKind.RelativeOrAbsolute);
+                                logo.EndInit();
+
+                                // Set the target canvas background
+                                can.Background = new ImageBrush(logo);
+
+                                if (road.Type.NAME == "IA")
+                                {
+                                    if (road.Value > 15000)
+                                    {
+                                        ((Canvas)(can.Children[2])).Background = Brushes.Red;
+                                    }
+                                    else
+                                    {
+                                        ((Canvas)(can.Children[2])).Background = Brushes.Transparent;
+                                    }
+                                }
+                                else
+                                {
+                                    if (road.Value > 7000)
+                                    {
+                                        ((Canvas)(can.Children[2])).Background = Brushes.Red;
+                                    }
+                                    else
+                                    {
+                                        ((Canvas)(can.Children[2])).Background = Brushes.Transparent;
+                                    }
+                                }
+
+                                ((TextBox)can.Children[1]).Text = el.Value.ToString();
+
+                                if (!OnGridIds.Contains(el.Value.Id))
+                                {
+                                    OnGridIds.Add(el.Value.Id);
+                                }
+                            }
                         }
                     }
+                    
                 }
             }
         }
@@ -256,11 +308,12 @@ namespace NetworkService.Views
         // Not sure why this code doesn't work
         private void SetListView()
         {
-            foreach (KeyValuePair<string, Grid> el in ListOfDisabledGrids)
-            {   
-                el.Value.Cursor = Cursors.No;
-                ((Canvas) el.Value.Children[1]).Background = Brushes.LightGray;
-            }
+            //foreach (KeyValuePair<string, Grid> el in ListOfDisabledGrids)
+            //{
+            //    el.Value.Cursor = Cursors.No;
+            //    ((Canvas) el.Value.Children[1]).Background = Brushes.LightGray;
+            //}
+
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,7 +357,7 @@ namespace NetworkService.Views
                     if(clearCanvas.Equals(can))
                     {
                         clearCanvas.Background = Brushes.White;
-                        ((TextBlock) (clearCanvas.Children[1])).Text = "";
+                        ((TextBox) (clearCanvas.Children[1])).Text = "";
                         clearCanvas.Resources.Remove("taken");
 
                         ((Canvas) (clearCanvas.Children[2])).Background = Brushes.Transparent;
