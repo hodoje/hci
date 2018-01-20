@@ -79,7 +79,6 @@ namespace NetworkService.Models
             foreach (var vm in NotifiedVmsList)
             {
                 vm.Notify(changedRoad);
-
             }
 
             // Here we invoke each action that is registered
@@ -87,7 +86,6 @@ namespace NetworkService.Models
             {
                 act.Invoke();
             }
-
             // Update the current Road
             CurrentRoad = changedRoad;
         }

@@ -223,7 +223,11 @@ namespace NetworkService.Views
 
                         g.Cursor = Cursors.No;
                         ((Canvas)g.Children[1]).Background = Brushes.LightGray;
-                        ListOfDisabledGrids.Add(((Canvas)sender).Name, g);
+                        if (!ListOfDisabledGrids.ContainsValue(g))
+                        {
+                            ListOfDisabledGrids.Remove(((Canvas) sender).Name);     // Since we care only about the grid, we need to delete the grid item with current key
+                            ListOfDisabledGrids.Add(((Canvas)sender).Name, g);      // And add it back again with a different key
+                        }
                     }
                     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -248,59 +252,70 @@ namespace NetworkService.Views
             e.Handled = true;
         }
 
+        // Since we can't save the latest state of the grid because the view always recreates whenever we navigate to it,
+        // we manually refresh it's state
         private void SetGrid()
         {
-            foreach(Road road in RoadsObs.Instance.Roads)
+            Dictionary<string, Road> Temp = new Dictionary<string, Road>();
+
+            foreach (var el in OnGridCollection)
             {
-                foreach (var el in OnGridCollection)
+                foreach (var r in RoadsObs.Instance.Roads)
                 {
-                    if(road.Id == el.Value.Id)
+                    if (el.Value.Id == r.Id)
                     {
-                        foreach (Canvas can in ListOfCanvases)
+                        Temp.Add(el.Key, el.Value);
+                        break;
+                    }
+                }
+            }
+            OnGridCollection = Temp;
+
+
+            foreach (var el in OnGridCollection)
+            {
+                foreach (Canvas can in ListOfCanvases)
+                {
+                    if (el.Key == can.Name)
+                    {
+                        BitmapImage logo = new BitmapImage();
+                        logo.BeginInit();
+                        logo.UriSource = new Uri(el.Value.Type.IMG_URL, UriKind.RelativeOrAbsolute);
+                        logo.EndInit();
+
+                        // Set the target canvas background
+                        can.Background = new ImageBrush(logo);
+
+                        if (el.Value.Type.NAME == "IA")
                         {
-                            if (el.Key == can.Name)
+                            if (el.Value.Value > 15000)
                             {
-                                BitmapImage logo = new BitmapImage();
-                                logo.BeginInit();
-                                logo.UriSource = new Uri(el.Value.Type.IMG_URL, UriKind.RelativeOrAbsolute);
-                                logo.EndInit();
-
-                                // Set the target canvas background
-                                can.Background = new ImageBrush(logo);
-
-                                if (road.Type.NAME == "IA")
-                                {
-                                    if (road.Value > 15000)
-                                    {
-                                        ((Canvas)(can.Children[2])).Background = Brushes.Red;
-                                    }
-                                    else
-                                    {
-                                        ((Canvas)(can.Children[2])).Background = Brushes.Transparent;
-                                    }
-                                }
-                                else
-                                {
-                                    if (road.Value > 7000)
-                                    {
-                                        ((Canvas)(can.Children[2])).Background = Brushes.Red;
-                                    }
-                                    else
-                                    {
-                                        ((Canvas)(can.Children[2])).Background = Brushes.Transparent;
-                                    }
-                                }
-
-                                ((TextBox)can.Children[1]).Text = el.Value.ToString();
-
-                                if (!OnGridIds.Contains(el.Value.Id))
-                                {
-                                    OnGridIds.Add(el.Value.Id);
-                                }
+                                ((Canvas)(can.Children[2])).Background = Brushes.Red;
+                            }
+                            else
+                            {
+                                ((Canvas)(can.Children[2])).Background = Brushes.Transparent;
                             }
                         }
+                        else
+                        {
+                            if (el.Value.Value > 7000)
+                            {
+                                ((Canvas)(can.Children[2])).Background = Brushes.Red;
+                            }
+                            else
+                            {
+                                ((Canvas)(can.Children[2])).Background = Brushes.Transparent;
+                            }
+                        }
+
+                            ((TextBox)can.Children[1]).Text = el.Value.ToString();
+
+                        if (!OnGridIds.Contains(el.Value.Id))
+                        {
+                            OnGridIds.Add(el.Value.Id);
+                        }
                     }
-                    
                 }
             }
         }
