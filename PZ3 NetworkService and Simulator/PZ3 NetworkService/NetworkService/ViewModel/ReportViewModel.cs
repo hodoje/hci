@@ -52,35 +52,67 @@ namespace NetworkService.ViewModel
 
             try
             {
-                // This part will do a check of the log file, delete log data for each object in deleted roads and override the file
+                // This part will do a check of the log file, omit log data for each object that doesn't exist anymore and override the file
                 if (File.Exists(path))
                 {
-                    using (var sr = new StreamReader(path))
+                    string[] readAllLines = System.IO.File.ReadAllLines(path);
+                    List<string> writeAllLines = new List<string>();
+
+                    for (int idx = 0; idx < readAllLines.Length; idx++)
                     {
-                        using (var sw = new StreamWriter(tempFile))
+                        string line = readAllLines[idx];
+
+                        if (IsValidString(line))
                         {
-                            string line;
-
-                            while ((line = sr.ReadLine()) != null)
+                            if (Int32.TryParse(line.Split(',')[1], out int i))
                             {
-                                if (IsValidString(line))
-                                {
-                                    if (Int32.TryParse(line.Split(',')[1], out int i))
-                                    {
-                                        int id = Int32.Parse(line.Split(',')[1]);
+                                int id = Int32.Parse(line.Split(',')[1]);
 
-                                        // If the ID isn't in the deleted roads, than that line will be useful and won't be deleted
-                                        if(!RoadsObs.Instance.DeletedRoads.ToList().Exists(o => o.Id == id))
-                                            sw.WriteLine(line);
-                                    }
-                                    else
-                                    {
-                                        continue;
-                                    }
+                                // If the ID isn't in the deleted roads, than that line will be useful and won't be deleted
+                                //if (!RoadsObs.Instance.DeletedRoads.ToList().Exists(o => o.Id == id) &&
+                                //    RoadsObs.Instance.Roads.ToList().Exists(o => o.Id == id))
+                                //    writeAllLines[idx] = line;
+                                if (RoadsObs.Instance.Roads.ToList().Exists(o => o.Id == id))
+                                {
+                                    writeAllLines.Add(line);
                                 }
+                            }
+                            else
+                            {
+                                continue;
                             }
                         }
                     }
+
+                    System.IO.File.WriteAllLines(tempFile, writeAllLines);
+
+                    // Slower code
+                    //using (var sr = new StreamReader(path))
+                    //{
+                    //    using (var sw = new StreamWriter(tempFile))
+                    //    {
+                    //        string line;
+
+                    //        while ((line = sr.ReadLine()) != null)
+                    //        {
+                    //            if (IsValidString(line))
+                    //            {
+                    //                if (Int32.TryParse(line.Split(',')[1], out int i))
+                    //                {
+                    //                    int id = Int32.Parse(line.Split(',')[1]);
+
+                    //                    // If the ID isn't in the deleted roads, than that line will be useful and won't be deleted
+                    //                    if(!RoadsObs.Instance.DeletedRoads.ToList().Exists(o => o.Id == id))
+                    //                        sw.WriteLine(line);
+                    //                }
+                    //                else
+                    //                {
+                    //                    continue;
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+                    //}
 
                     // We delete the log file
                     File.Delete(path);
@@ -92,60 +124,54 @@ namespace NetworkService.ViewModel
                 // This part changes the ReportText
                 if (File.Exists(path))
                 {
-                    using (var sr = new StreamReader(path))
+                    string[] allLines = System.IO.File.ReadAllLines(path);
+
+                    for (int idx = 0; idx < allLines.Length; idx++)
                     {
-                        string line;
+                        string line = allLines[idx];
 
-                        while ((line = sr.ReadLine()) != null)
+                        if (IsValidString(line))
                         {
-                            // Valid string looks something like this: "16.01.2018. 18:54:41,23,Value:13204"
-                            if (IsValidString(line))
+                            // Another validation where we check if there will be an "int" that represents some ID
+                            if (Int32.TryParse(line.Split(',')[1], out int i))
                             {
-                                // Another validation where we check if there will be an "int" that represents some ID
-                                if (Int32.TryParse(line.Split(',')[1], out int i))
+                                // Extract date from the string
+                                string date = line.Split(',')[0];
+
+                                // Another validation where we check if date from the log file falls in todays' date
+                                if (DateTime.Compare(Convert.ToDateTime(date), DateTime.Today) < 0)
                                 {
-                                    // Extract date from the string
-                                    string date = line.Split(',')[0];
+                                    continue;
+                                }
 
-                                    // Another validation where we check if date from the log file falls in todays' date
-                                    if (DateTime.Compare(Convert.ToDateTime(date), DateTime.Today) < 0)
+                                // Extract the ID from the string
+                                int id = Int32.Parse(line.Split(',')[1]);
+
+                                // Extract the value from the string
+                                string value = line.Split(',')[2].Split(':')[1];
+
+                                // Final report line that will look something like this: "16.01.2018. 18:54:41,23,Value:13204"
+                                string finalWritting = $"\t{date}, CHANGED STATE: {value}";
+
+                                // We check in report dictionary if it contains an ID extracted from a log line
+                                if (!objectLogs.ContainsKey(id))
+                                {
+                                    // If it doesn't contain the ID then we check if the ID is contained in the Roads collection
+                                    if (RoadsObs.Instance.Roads.ToDictionary(o => o.Id, o => o.ToString())
+                                        .ContainsKey(id))
                                     {
-                                        continue;
-                                    }
+                                        // If it does contain the ID then that means that there is an object with that id in Roads collection,
+                                        // so we have to add it to the report dictionary
+                                        objectLogs.Add(id, new List<string>());
 
-                                    // Extract the ID from the string
-                                    int id = Int32.Parse(line.Split(',')[1]);
-                                    
-                                    // Extract the value from the string
-                                    string value = line.Split(',')[2].Split(':')[1];
-
-                                    // Final report line that will look something like this: "16.01.2018. 18:54:41,23,Value:13204"
-                                    string finalWritting = $"\t{date}, CHANGED STATE: {value}";
-
-                                    // We check in report dictionary if it contains an ID extracted from a log line
-                                    if (!objectLogs.ContainsKey(id))
-                                    {
-                                        // If it doesn't contain the ID then we check if the ID is contained in the Roads collection
-                                        if (RoadsObs.Instance.Roads.ToDictionary(o => o.Id, o => o.ToString())
-                                            .ContainsKey(id))
-                                        {
-                                            // If it does contain the ID then that means that there is an object with that id in Roads collection,
-                                            // so we have to add it to the report dictionary
-                                            objectLogs.Add(id, new List<string>());
-
-                                            // And we add the report line to the list of string for that object in report dictionary
-                                            objectLogs[id].Add(finalWritting);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // If report dictionary contains the ID, then we just add the report line to the existing list of strings for the particular object
+                                        // And we add the report line to the list of string for that object in report dictionary
                                         objectLogs[id].Add(finalWritting);
                                     }
                                 }
                                 else
                                 {
-                                    continue;
+                                    // If report dictionary contains the ID, then we just add the report line to the existing list of strings for the particular object
+                                    objectLogs[id].Add(finalWritting);
                                 }
                             }
                             else
@@ -153,7 +179,75 @@ namespace NetworkService.ViewModel
                                 continue;
                             }
                         }
+                        else
+                        {
+                            continue;
+                        }
                     }
+
+                    // Slower code
+                    //using (var sr = new StreamReader(path))
+                    //{
+                    //    string line;
+
+                    //    while ((line = sr.ReadLine()) != null)
+                    //    {
+                    //        // Valid string looks something like this: "16.01.2018. 18:54:41,23,Value:13204"
+                    //        if (IsValidString(line))
+                    //        {
+                    //            // Another validation where we check if there will be an "int" that represents some ID
+                    //            if (Int32.TryParse(line.Split(',')[1], out int i))
+                    //            {
+                    //                // Extract date from the string
+                    //                string date = line.Split(',')[0];
+
+                    //                // Another validation where we check if date from the log file falls in todays' date
+                    //                if (DateTime.Compare(Convert.ToDateTime(date), DateTime.Today) < 0)
+                    //                {
+                    //                    continue;
+                    //                }
+
+                    //                // Extract the ID from the string
+                    //                int id = Int32.Parse(line.Split(',')[1]);
+
+                    //                // Extract the value from the string
+                    //                string value = line.Split(',')[2].Split(':')[1];
+
+                    //                // Final report line that will look something like this: "16.01.2018. 18:54:41,23,Value:13204"
+                    //                string finalWritting = $"\t{date}, CHANGED STATE: {value}";
+
+                    //                // We check in report dictionary if it contains an ID extracted from a log line
+                    //                if (!objectLogs.ContainsKey(id))
+                    //                {
+                    //                    // If it doesn't contain the ID then we check if the ID is contained in the Roads collection
+                    //                    if (RoadsObs.Instance.Roads.ToDictionary(o => o.Id, o => o.ToString())
+                    //                        .ContainsKey(id))
+                    //                    {
+                    //                        // If it does contain the ID then that means that there is an object with that id in Roads collection,
+                    //                        // so we have to add it to the report dictionary
+                    //                        objectLogs.Add(id, new List<string>());
+
+                    //                        // And we add the report line to the list of string for that object in report dictionary
+                    //                        objectLogs[id].Add(finalWritting);
+                    //                    }
+                    //                }
+                    //                else
+                    //                {
+                    //                    // If report dictionary contains the ID, then we just add the report line to the existing list of strings for the particular object
+                    //                    objectLogs[id].Add(finalWritting);
+                    //                }
+                    //            }
+                    //            else
+                    //            {
+                    //                continue;
+                    //            }
+                    //        }
+                    //        else
+                    //        {
+                    //            continue;
+                    //        }
+                    //    }
+                    //}
 
                     // Just a check so the "DAILY REPORT" doesn't show in report if there are no items
                     if (objectLogs.Count != 0)
