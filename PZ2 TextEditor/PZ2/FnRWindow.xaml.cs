@@ -39,11 +39,10 @@ namespace PZ2
 
         private void FindAndReplaceButton_OnClick(object sender, RoutedEventArgs e)
         {
-            int cnt = 0;
             string findWord = FindTextBox.Text;
             string replaceWord = ReplaceTextBox.Text;
 
-            if (findWord.Equals(String.Empty) || replaceWord.Equals(String.Empty) && cnt > 0)
+            if (findWord.Equals(String.Empty) || replaceWord.Equals(String.Empty))
             {
                 MessageBoxResult emptyInput = MessageBox.Show("You need to enter both 'Find' and 'Replace' arguments.",
                     "Find & Replace", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -58,10 +57,10 @@ namespace PZ2
                     string textInRun = current.GetTextInRun(LogicalDirection.Forward);
                     if (!string.IsNullOrWhiteSpace(textInRun))
                     {
-                        int index = textInRun.IndexOf(findWord);
-                        if (index != -1)
+                        int idx = textInRun.IndexOf(findWord);
+                        if (idx != -1)
                         {
-                            TextPointer selectionStart = current.GetPositionAtOffset(index, LogicalDirection.Forward);
+                            TextPointer selectionStart = current.GetPositionAtOffset(idx, LogicalDirection.Forward);
                             TextPointer selectionEnd = selectionStart.GetPositionAtOffset(findWord.Length, LogicalDirection.Forward);
                             TextRange selection = new TextRange(selectionStart, selectionEnd);
 
@@ -81,8 +80,6 @@ namespace PZ2
                             selection.ApplyPropertyValue(TextElement.FontStyleProperty, o4);
                             selection.ApplyPropertyValue(Inline.FontSizeProperty, o5);
 
-                            rtbList[index].Selection.Select(selection.Start, selection.End);
-                            cnt++;
                             rtbList[index].Focus();
                         }
                     }
